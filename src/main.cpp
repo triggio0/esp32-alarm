@@ -3,7 +3,18 @@
 
 DisplayManager displayManager;
 EyeSprite eyeSprite;
+KeypadSprite keypadSprite;
 AlarmState currentState {disarmed};
+
+
+float getHeapUsedPercent() {
+    size_t total = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
+    if (total == 0) return 0.0f;                 // defensive
+    size_t freeBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
+    size_t used = total - freeBytes;
+    return (float)used * 100.0f / (float)total;
+}
+
 
 
 void setup() {
@@ -16,28 +27,38 @@ void setup() {
     pinMode(0, INPUT_PULLUP);
     
     displayManager.begin();
-    eyeSprite.begin(&displayManager);
+    displayManager.fillColor(TFT_WHITE);
 
-    displayManager.fillColor(TFT_BLACK);
+    // eyeSprite.begin(&displayManager);
+    // eyeSprite.setAlarmState(currentState);
 
-    eyeSprite.setAlarmState(currentState);
+    keypadSprite.begin(&displayManager);
+    keypadSprite.pushAll();
+
+    
 }
 
 void loop() {
 
 
-    eyeSprite.update();
-    eyeSprite.push();
+    // eyeSprite.update();
+    // eyeSprite.push();
+
+    keypadSprite.push();
+
+    // if (digitalRead(0) == LOW) {
+    //     if (currentState == disarmed) currentState = armedAway;
+    //     else if (currentState == armedAway) currentState = soundAlarm;
+    //     else if (currentState == soundAlarm) currentState = disarmed;
+    //     eyeSprite.setAlarmState(currentState);
+    //     Serial.println(currentState);
+    //     delay(100);
+    // }
+
+    Serial.printf("Heap used: %.1f%%\n", getHeapUsedPercent());
+
+
+
+
     delay(16);
-
-    if (digitalRead(0) == LOW) {
-        if (currentState == disarmed) currentState = armedAway;
-        else if (currentState == armedAway) currentState = soundAlarm;
-        else if (currentState == soundAlarm) currentState = disarmed;
-        eyeSprite.setAlarmState(currentState);
-        Serial.println(currentState);
-        delay(100);
-    }
-
-    
 }

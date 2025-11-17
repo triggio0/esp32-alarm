@@ -24,6 +24,7 @@ int16_t DisplayManager::height() {
 TFT_eSprite* DisplayManager::createSprite(int16_t w, int16_t h) {
     TFT_eSprite* sprite = new TFT_eSprite(&tft);
     sprite->createSprite(w, h);
+    sprite->setColorDepth(8);
     return sprite;
 }
 
@@ -32,7 +33,7 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
         sprite->deleteSprite();
         delete sprite;
     }
-}
+};
 
 
 
@@ -223,7 +224,7 @@ void EyeSprite::begin(DisplayManager* dM) {
     startTime = millis();
 
     displayManager = dM;
-    sumSprite = displayManager->createSprite(width, height);
+    buffer = displayManager->createSprite(width, height);
     lidsSprite = displayManager->createSprite(width, height);
     irisSprite = displayManager->createSprite(irisRadius * 2 + 1, irisRadius * 2 + 1);
 
@@ -233,7 +234,7 @@ void EyeSprite::begin(DisplayManager* dM) {
 }
 
 void EyeSprite::update() {
-    sumSprite->fillScreen(backgroundColor);
+    buffer->fillSprite(backgroundColor);
     lidsSprite->fillSprite(backgroundColor);
     irisSprite->fillSprite(transparentColor);
 
@@ -278,14 +279,14 @@ void EyeSprite::setAlarmState(AlarmState as) {
 }
 
 void EyeSprite::push() const {
-    irisSprite->pushToSprite(sumSprite, (irisPosXc - irisRadius), (irisPosYc - irisRadius), transparentColor);
-    lidsSprite->pushToSprite(sumSprite, 0, 0, transparentColor);
-    sumSprite->pushSprite(posX, posY, transparentColor);
+    irisSprite->pushToSprite(buffer, (irisPosXc - irisRadius), (irisPosYc - irisRadius), transparentColor);
+    lidsSprite->pushToSprite(buffer, 0, 0, transparentColor);
+    buffer->pushSprite(posX, posY, transparentColor);
 }
 
 EyeSprite::~EyeSprite() {
     if (displayManager != nullptr) {
-        displayManager->deleteSprite(sumSprite);
+        displayManager->deleteSprite(buffer);
         displayManager->deleteSprite(lidsSprite);
         displayManager->deleteSprite(irisSprite);
     }
@@ -293,9 +294,41 @@ EyeSprite::~EyeSprite() {
 
 
 
+TFT_eSprite* KeypadKey::buffer {nullptr};
+int16_t KeypadKey::width {};
+int16_t KeypadKey::height {};
+int16_t KeypadKey::cornerRadius {};
+uint16_t KeypadKey::bgColor {};
+uint16_t KeypadKey::bgSelectColor {};
+uint16_t KeypadKey::charColor {};
 
-KeypadKey::KeypadKey(char ch, int16_t posX, int16_t posY, int16_t width, int16_t height, uint16_t bgColor, uint16_t bgSelectColor, uint16_t charColor) : 
-    ch(ch), posX(posX), posY(posY), width(width), height(height), bgColor(bgColor), bgSelectColor(bgSelectColor), charColor(charColor) {
+KeypadKey::KeypadKey(char ch, int16_t posX, int16_t posY) : ch{ch}, posX{posX}, posY{posY} {}
+
+void KeypadKey::setup(int16_t w, int16_t h, int16_t cR, uint16_t bg, uint16_t bgSel, uint16_t chr, TFT_eSprite* buf) {
+    KeypadKey::width = w;
+    KeypadKey::height = h;
+    KeypadKey::cornerRadius = cR;
+
+    KeypadKey::bgColor = bg;
+    KeypadKey::bgSelectColor = bgSel;
+    KeypadKey::charColor = chr;
+
+    KeypadKey::buffer = buf;
+}
+
+void KeypadKey::push() {
+    buffer->fillRoundRect(posX, posY, width, height, cornerRadius, selected ? bgColor : bgSelectColor);
+
+    int16_t textX {static_cast<int16_t>(posX + width / 2 - 8)};   // approx centering for size 2
+    int16_t textY {static_cast<int16_t>(posY + height / 2 - 8)};  // approx centering for size 2
+    buffer->setTextColor(charColor, bgColor);
+    buffer->setTextSize(2);
+    buffer->setCursor(textX, textY);
+    buffer->print(ch);
+}
+
+void KeypadKey::select(bool s) {
+    selected = s;
 }
 
 
@@ -305,20 +338,56 @@ void KeypadSprite::begin(DisplayManager* dM) {
     initialized = true;
 
     startTime = millis();
-
-    sumSprite = displayManager->createSprite(width, height);
+    displayManager = dM;
+    buffer = displayManager->createSprite(width, height);
+    buffer->fillSprite(bgColor);
 
     int16_t keyHeight {height / 4};
     int16_t keyWidth {width / 3};
 
     for (int i {}; i < 12; i++) {
-        int16_t keyPosX {posX + (i % 3) * keyWidth};
-        int16_t keyPosY {posY + pinProgressHeight + (1 / 3) * keyHeight};
+        int16_t keyPosX {static_cast<int16_t>((i % 3) * keyWidth)};
+        int16_t keyPosY {static_cast<int16_t>(pinProgressHeight + (i / 3) * keyHeight)};
 
-        keyArray[i] = KeypadKey{allChars[i], keyPosX, keyPosY, keyWidth, keyHeight, keyBgColor, keyBgSelectColor, charColor, };
+        keyArray[i] = KeypadKey{allChars[i], keyPosX, keyPosY};
+    }
+    keyArray[0].setup(keyWidth, keyHeight, cornerRadius, keyBgColor, keyBgSelectColor, charColor, buffer);
+}
+
+void KeypadSprite::selectKey(char ch) {
+    for (int i {}; allChars[i] != '\0'; i++) {
+        if (allChars[i] == ch) {
+            keyArray[i].select(true);
+            keyArray[i].push();
+            break;
+        }
     }
 }
 
+void KeypadSprite::deselectKey(char ch) {
+    for (int i {}; allChars[i] != '\0'; i++) {
+        if (allChars[i] == ch) {
+            keyArray[i].select(false);
+            keyArray[i].push();
+            break;
+        }
+    }
+}
+
+void KeypadSprite::pushAll() {
+    buffer->fillSprite(TFT_BLUE);
+    for (int i {}; allChars[i] != '\0'; i++) {
+        keyArray[i].push();
+    }
+    buffer->pushSprite(posX, posY, transparentColor);
+}
+
+void KeypadSprite::push() const {
+    buffer->pushSprite(posX, posY, transparentColor);
+}
+
 KeypadSprite::~KeypadSprite() {
-    displayManager->deleteSprite(sumSprite);
+    if (displayManager != nullptr) {
+        displayManager->deleteSprite(buffer);
+    }
 }
