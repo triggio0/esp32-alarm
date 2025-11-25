@@ -27,7 +27,7 @@ void setup() {
     pinMode(0, INPUT_PULLUP);
     
     displayManager.begin();
-    displayManager.fillColor(TFT_BLACK);
+    displayManager.fillColor(TFT_WHITE);
 
 
     eyeSprite.begin(&displayManager);
@@ -36,14 +36,11 @@ void setup() {
     keypadGraph.begin(&displayManager);
     keypadGraph.pushAll();
 
-    keypadGraph.selectKey('4');
+    keypadGraph.selectKey('3');
 
-    delay(1000);
-    keypadGraph.setBufferedNumbers(4);
-    delay(1000);
-    keypadGraph.setBufferedNumbers(3);
     
     getHeapUsedPercent();
+    Serial.println(getHeapUsedPercent());
 }
 
 void loop() {

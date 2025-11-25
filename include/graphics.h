@@ -2,10 +2,7 @@
 #include <TFT_eSPI.h>
 #include "toInclude.h"
 
-
 constexpr uint16_t transparentColor {0xABCD};
-
-
 
 class DisplayManager {
     /*
@@ -25,7 +22,6 @@ public:
     TFT_eSPI* getTFT();
 };
 
-
 class EyeSprite {
     /*
     **  setup: .begin()
@@ -37,8 +33,6 @@ private:
     // ===== Sprites =====
     DisplayManager* displayManager;
     TFT_eSprite* sumSprite;
-    TFT_eSprite* lidsSprite;
-    TFT_eSprite* irisSprite;
 
     // ===== General Stuff =====
     
@@ -50,16 +44,16 @@ private:
     // ===== Configuration Constants =====
     static constexpr int16_t posX                       {40};               // wrt screen
     static constexpr int16_t posY                       {100};              // wrt screen
-    static constexpr int16_t width                      {240};              // determines sprite size
-    static constexpr float topPMaxHeight                {0.48};             // only for bezier curve generation
-    static constexpr float bottomPMaxHeight             {0.41};             // only for bezier curve generation
+    static constexpr int16_t eyeWidth                   {240};              // determines bezier curve width
+    static constexpr float topPMaxHeight                {0.48};             // control point for bezier curve generation
+    static constexpr float bottomPMaxHeight             {0.41};             // control point for bezier curve generation
     static constexpr float dozyMinuend                  {0.1};              // minimum 0.05
     static constexpr uint8_t baseAperture               {90};
     static constexpr float tIncrease                    {0.003};            // decrese to avoid zebra stripes on lids
     static constexpr uint16_t blinkClosingTime          {70};
     static constexpr uint16_t blinkOpeningTime          {120};
     static constexpr int16_t irisRadius                 {38};
-    static constexpr float irisPosYcLoweringCoeff       {0.03};             // makes iris lower ( * width )
+    static constexpr float irisPosYcLoweringCoeff       {0.03};             // makes iris lower ( * eyeWidth )
     static constexpr float irisRLDistanceCoeff          {0.22};             // 0 ~ 0.5, how far to the side it can look
     static constexpr float irisVelocity                 {0.5};
     static constexpr int16_t basePupilRadius            {20};
@@ -71,20 +65,24 @@ private:
 
     // ===== Colors =====
     static constexpr uint16_t transparentColor          {0xABCD};
-    static constexpr uint16_t backgroundColor           {TFT_BLACK};
-    static constexpr uint16_t lidColor                  {TFT_WHITE};
-    static constexpr uint16_t irisBaseColor             {TFT_WHITE};
+    static constexpr uint16_t backgroundColor           {TFT_WHITE};
+    static constexpr uint16_t lidColor                  {TFT_BLACK};
+    static constexpr uint16_t irisBaseColor             {TFT_BLACK};
     static constexpr uint16_t irisAngryColor            {TFT_RED};
-    static constexpr uint16_t pupilColor                {TFT_BLACK};
+    static constexpr uint16_t pupilColor                {TFT_WHITE};
 
     // ===== Derived Constants =====
-    static constexpr int16_t halfWidth {static_cast<int16_t>(width / 2)};
-    static constexpr int16_t height {static_cast<int16_t>(width * (topPMaxHeight + bottomPMaxHeight))};     // sprite size
-    static constexpr int16_t midH {static_cast<int16_t>(width * topPMaxHeight)};                            // eye horizontal centerline
-    static constexpr int16_t p2p3Offset {static_cast<int16_t>(0.28 * width)};                               // distance on x between center and p2 or p3 (for bezier curves)
+    static constexpr int16_t halfWidth {static_cast<int16_t>(eyeWidth / 2)};
+    static constexpr int16_t p2p3Offset {static_cast<int16_t>(0.28 * eyeWidth)};
     static constexpr float angularCoeffClosingSeq {-static_cast<float>(baseAperture) / blinkClosingTime};
     static constexpr float angularCoeffOpeningSeq {static_cast<float>(baseAperture) / blinkOpeningTime};
-    static constexpr int16_t irisRLDistance {static_cast<int16_t>((irisRLDistanceCoeff * width))};
+    static constexpr int16_t irisRLDistance {static_cast<int16_t>((irisRLDistanceCoeff * eyeWidth))};
+
+    // ===== Runtime-calculated sprite dimensions =====
+    int16_t spriteWidth {};
+    int16_t spriteHeight {};
+    int16_t baselineY {};                                                   // baseline position within sprite (changes based on actual bounds)
+    int16_t spriteOffsetY {};                                               // offset to apply when pushing to screen
 
     // ===== Blink =====
     bool blinking {false};
@@ -92,25 +90,25 @@ private:
     uint32_t startBlink {};
 
     // ===== Iris =====
-    int16_t irisPosXc {static_cast<int16_t>(halfWidth)};                    // wrt sumSprite
-    int16_t irisPosYc {midH};                                               // wrt sumSprite
+    int16_t irisPosXc {static_cast<int16_t>(halfWidth)};
+    int16_t irisPosYc {};                                                   // set after calculating sprite bounds
     IrisPosition currentIrisPos {center};
     IrisPosition targetIrisPosition {center};
     int32_t startIrisMove {};
     uint16_t irisColor {irisBaseColor};
-    int16_t irisPosQueueIndex {};                                           // refers to irisPosQueue
+    int16_t irisPosQueueIndex {};
     IrisPosition irisPosQueue[irisPosQueueLen] {};
-    uint32_t startIrisMoveWait {};                                          // used for random eye movement
-    uint32_t randIrisMoveWait {};                                           // used for random eye movement
-    uint32_t startLookAround {};                                            // used for random eye movement
+    uint32_t startIrisMoveWait {};
+    uint32_t randIrisMoveWait {};
+    uint32_t startLookAround {};
 
     // ===== Pupil =====
     int16_t pupilRadius {basePupilRadius};
-    int16_t pupilX {};                                                      // wrt irisSprite
-    int16_t pupilY {};                                                      // wrt irisSprite
+    int16_t pupilX {};                                                      // wrt sumSprite
+    int16_t pupilY {};                                                      // wrt sumSprite
     int16_t pupilSourceHeight {basePupilSourceHeight};
 
-
+    void calculateSpriteBounds();
     void drawEyelid(float distFromBaseline, uint16_t color, bool outlineMode=false);
     void drawEyelids(uint8_t aperturePercentage);
     void updateBlink();
@@ -192,7 +190,7 @@ private:
     static constexpr uint16_t charColor {TFT_BLACK};
     static constexpr uint16_t bgColor {TFT_WHITE};
 
-    const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', 'b', '\0'};
+    const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '<', '\0'};
     KeypadKey keyArray[12];
 
     int16_t previousSelectedNumbers {};

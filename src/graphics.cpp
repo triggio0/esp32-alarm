@@ -39,19 +39,70 @@ TFT_eSPI* DisplayManager::getTFT() {
 }
 
 
+void EyeSprite::calculateSpriteBounds() {
+    // Calculate actual min/max Y by iterating through the bezier curves
+    float minY = 0;
+    float maxY = 0;
+    
+    // Temporary baseline for calculation
+    float tempBaseline = 0;
+    
+    // Check top eyelid curve (goes negative/up)
+    {
+        float distFromBaseline = -topPMaxHeight * eyeWidth;
+        int16_t x1 = halfWidth - p2p3Offset;
+        int16_t y1 = tempBaseline + distFromBaseline;
+        int16_t x2 = halfWidth + p2p3Offset;
+        int16_t y2 = y1;
+        
+        for (float t = 0.0; t <= 1.0; t += tIncrease) {
+            float yt = (1 - t) * (1 - t) * (1 - t) * tempBaseline + 
+                       3 * (1 - t) * (1 - t) * t * y1 + 
+                       3 * (1 - t) * t * t * y2 + 
+                       t * t * t * tempBaseline;
+            if (yt < minY) minY = yt;
+        }
+    }
+    
+    // Check bottom eyelid curve (goes positive/down)
+    {
+        float distFromBaseline = bottomPMaxHeight * eyeWidth;
+        int16_t x1 = halfWidth - p2p3Offset;
+        int16_t y1 = tempBaseline + distFromBaseline;
+        int16_t x2 = halfWidth + p2p3Offset;
+        int16_t y2 = y1;
+        
+        for (float t = 0.0; t <= 1.0; t += tIncrease) {
+            float yt = (1 - t) * (1 - t) * (1 - t) * tempBaseline + 
+                       3 * (1 - t) * (1 - t) * t * y1 + 
+                       3 * (1 - t) * t * t * y2 + 
+                       t * t * t * tempBaseline;
+            if (yt > maxY) maxY = yt;
+        }
+    }
+    
+    // Now we know the actual rendered bounds
+    spriteWidth = eyeWidth;
+    spriteHeight = static_cast<int16_t>(maxY - minY) + 1;
+    baselineY = static_cast<int16_t>(-minY);  // offset to move baseline into sprite
+    spriteOffsetY = static_cast<int16_t>(minY);  // how much we shifted from original position
+    
+    // Set initial iris position
+    irisPosYc = baselineY;
+}
 
 void EyeSprite::drawEyelid(float distFromBaseline, uint16_t color, bool outlineMode) {
     int16_t x0 {static_cast<int16_t>((outlineMode ? 0 : 1))};
-    int16_t y0 {midH};
+    int16_t y0 {baselineY};
 
     int16_t x1 {static_cast<int16_t>((halfWidth - p2p3Offset))};
-    int16_t y1 {static_cast<int16_t>((midH + distFromBaseline))};
+    int16_t y1 {static_cast<int16_t>((baselineY + distFromBaseline))};
 
     int16_t x2 {static_cast<int16_t>((halfWidth + p2p3Offset))};
     int16_t y2 {y1};
 
-    int16_t x3 {static_cast<int16_t>((outlineMode ? width : width -1))};
-    int16_t y3 {midH};
+    int16_t x3 {static_cast<int16_t>((outlineMode ? spriteWidth : spriteWidth - 1))};
+    int16_t y3 {baselineY};
 
     float prev_xt = x0;
     float prev_yt = y0;
@@ -60,9 +111,9 @@ void EyeSprite::drawEyelid(float distFromBaseline, uint16_t color, bool outlineM
         float xt = (1 - t) * (1 - t) * (1 - t) * x0 + 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t * x3;
         float yt = (1 - t) * (1 - t) * (1 - t) * y0 + 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t * y3;
         if (!outlineMode) {
-            lidsSprite->drawLine(xt, yt, xt, midH, color);
+            sumSprite->drawLine(xt, yt, xt, baselineY, color);
         } else {
-            lidsSprite->drawLine(static_cast<int16_t>(prev_xt), static_cast<int16_t>(prev_yt), static_cast<int16_t>(xt), static_cast<int16_t>(yt), color);
+            sumSprite->drawLine(static_cast<int16_t>(prev_xt), static_cast<int16_t>(prev_yt), static_cast<int16_t>(xt), static_cast<int16_t>(yt), color);
             prev_xt = xt;
             prev_yt = yt;
         }
@@ -77,10 +128,88 @@ void EyeSprite::drawEyelids(uint8_t aperturePercentage) {
         topAperture = ((aperturePercentage * (topPMaxHeight - dozyMinuend)) / 100);
     }
     float bottomAperture {((aperturePercentage * bottomPMaxHeight) / 100)};
-    drawEyelid(-topPMaxHeight * width, lidColor);               // top outer
-    drawEyelid(bottomPMaxHeight * width, lidColor);             // bottom outer
-    drawEyelid(-topAperture * width, transparentColor);         // top inner
-    drawEyelid(bottomAperture * width, transparentColor);       // bottom inner
+    
+    // Draw only the visible lid portions (between outer and inner curves)
+    // Store bezier curve points for both outer and inner curves
+    const int maxPoints = static_cast<int>(1.0 / tIncrease) + 1;
+    
+    // Top lid: fill area between outer and inner curves
+    {
+        float outerDist = -topPMaxHeight * eyeWidth;
+        float innerDist = -topAperture * eyeWidth;
+        
+        int16_t x1_outer = halfWidth - p2p3Offset;
+        int16_t y1_outer = baselineY + outerDist;
+        int16_t x2_outer = halfWidth + p2p3Offset;
+        int16_t y2_outer = y1_outer;
+        
+        int16_t x1_inner = halfWidth - p2p3Offset;
+        int16_t y1_inner = baselineY + innerDist;
+        int16_t x2_inner = halfWidth + p2p3Offset;
+        int16_t y2_inner = y1_inner;
+        
+        float prev_xt_outer = 0;
+        float prev_yt_outer = baselineY;
+        float prev_xt_inner = 0;
+        float prev_yt_inner = baselineY;
+        
+        for (float t = 0.0; t <= 1.0; t += tIncrease) {
+            // Outer curve point
+            float xt_outer = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_outer + 
+                            3 * (1 - t) * t * t * x2_outer + t * t * t * spriteWidth;
+            float yt_outer = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_outer + 
+                            3 * (1 - t) * t * t * y2_outer + t * t * t * baselineY;
+            
+            // Inner curve point
+            float xt_inner = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_inner + 
+                            3 * (1 - t) * t * t * x2_inner + t * t * t * spriteWidth;
+            float yt_inner = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_inner + 
+                            3 * (1 - t) * t * t * y2_inner + t * t * t * baselineY;
+            
+            // Fill vertical line between outer and inner curves
+            sumSprite->drawLine(static_cast<int16_t>(xt_outer), static_cast<int16_t>(yt_outer), 
+                              static_cast<int16_t>(xt_inner), static_cast<int16_t>(yt_inner), lidColor);
+            
+            prev_xt_outer = xt_outer;
+            prev_yt_outer = yt_outer;
+            prev_xt_inner = xt_inner;
+            prev_yt_inner = yt_inner;
+        }
+    }
+    
+    // Bottom lid: fill area between inner and outer curves
+    {
+        float innerDist = bottomAperture * eyeWidth;
+        float outerDist = bottomPMaxHeight * eyeWidth;
+        
+        int16_t x1_inner = halfWidth - p2p3Offset;
+        int16_t y1_inner = baselineY + innerDist;
+        int16_t x2_inner = halfWidth + p2p3Offset;
+        int16_t y2_inner = y1_inner;
+        
+        int16_t x1_outer = halfWidth - p2p3Offset;
+        int16_t y1_outer = baselineY + outerDist;
+        int16_t x2_outer = halfWidth + p2p3Offset;
+        int16_t y2_outer = y1_outer;
+        
+        for (float t = 0.0; t <= 1.0; t += tIncrease) {
+            // Inner curve point
+            float xt_inner = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_inner + 
+                            3 * (1 - t) * t * t * x2_inner + t * t * t * spriteWidth;
+            float yt_inner = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_inner + 
+                            3 * (1 - t) * t * t * y2_inner + t * t * t * baselineY;
+            
+            // Outer curve point
+            float xt_outer = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_outer + 
+                            3 * (1 - t) * t * t * x2_outer + t * t * t * spriteWidth;
+            float yt_outer = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_outer + 
+                            3 * (1 - t) * t * t * y2_outer + t * t * t * baselineY;
+            
+            // Fill vertical line between inner and outer curves
+            sumSprite->drawLine(static_cast<int16_t>(xt_inner), static_cast<int16_t>(yt_inner), 
+                              static_cast<int16_t>(xt_outer), static_cast<int16_t>(yt_outer), lidColor);
+        }
+    }
 }
 
 void EyeSprite::updateBlink() {
@@ -101,12 +230,12 @@ void EyeSprite::updateBlink() {
 }
 
 void EyeSprite::drawIris() {
-    irisSprite->fillCircle(irisRadius, irisRadius, irisRadius, irisColor);
-    irisSprite->fillCircle(pupilX, pupilY, pupilRadius, pupilColor);
+    // Draw iris directly to sumSprite
+    sumSprite->fillCircle(irisPosXc, irisPosYc, irisRadius, irisColor);
+    sumSprite->fillCircle(pupilX, pupilY, pupilRadius, pupilColor);
 }
 
 void EyeSprite::updateIrisPos() {
-
     if (!startIrisMove) startIrisMove = millis();
 
     int8_t coeffMovementDirection {1};
@@ -165,28 +294,27 @@ void EyeSprite::generateIrisPositionQueue() {
 
 void EyeSprite::computePupilPosition() {
     float dx = irisPosXc - (halfWidth);
-    float dy = irisPosYc - midH + pupilSourceHeight;
+    float dy = irisPosYc - baselineY + pupilSourceHeight;
     float distance = sqrt(dx * dx + dy * dy);
 
-    if (distance < 0.1) {       // to avoid 0 division
-        pupilX = irisRadius;
-        pupilY = irisRadius;
+    if (distance < 0.1) {
+        pupilX = irisPosXc;
+        pupilY = irisPosYc;
         return;
     }
-    float maxIrisDistance = irisRLDistance;  // Maximum distance iris moves from center
-    float distanceRatio = distance / maxIrisDistance;  // 0.0 (centered) to 1.0 (max)
+    float maxIrisDistance = irisRLDistance;
+    float distanceRatio = distance / maxIrisDistance;
     float scaledPupilDistance = pupilDistanceFromCenter * distanceRatio;
 
     float scale = scaledPupilDistance / distance;
     float pupilCenterX = dx * scale;
     float pupilCenterY = dy * scale;
 
-    pupilX = irisRadius + static_cast<int16_t>(pupilCenterX);
-    pupilY = irisRadius + static_cast<int16_t>(pupilCenterY);
+    pupilX = irisPosXc + static_cast<int16_t>(pupilCenterX);
+    pupilY = irisPosYc + static_cast<int16_t>(pupilCenterY);
 }
 
 void EyeSprite::randomStateUpdate() {
-
     uint32_t elapsed {millis() - startTime};
     if ((elapsed % blinkInterval) < blinkClosingTime) {
         blinking = true;
@@ -225,29 +353,30 @@ void EyeSprite::begin(DisplayManager* dM) {
     initialized = true;
 
     startTime = millis();
-
     displayManager = dM;
-    sumSprite = displayManager->createSprite(width, height);
-    lidsSprite = displayManager->createSprite(width, height);
-    irisSprite = displayManager->createSprite(irisRadius * 2 + 1, irisRadius * 2 + 1);
+    
+    // Calculate the actual bounds of the rendered bezier curves
+    calculateSpriteBounds();
+    
+    // Create sprite with optimized dimensions
+    sumSprite = displayManager->createSprite(spriteWidth, spriteHeight);
 
-    drawEyelid(-topPMaxHeight * width, lidColor, true);     // top outer
-    drawEyelid(bottomPMaxHeight * width, lidColor, true);   // bottom outer
+    // Draw eyelid outlines for reference (optional)
+    drawEyelid(-topPMaxHeight * eyeWidth, lidColor, true);
+    drawEyelid(bottomPMaxHeight * eyeWidth, lidColor, true);
     computePupilPosition();
 }
 
 void EyeSprite::update() {
     sumSprite->fillScreen(backgroundColor);
-    lidsSprite->fillSprite(backgroundColor);
-    irisSprite->fillSprite(transparentColor);
 
     randomStateUpdate();
 
     if (blinking) updateBlink();
     updateIris();
 
-    drawEyelids(currentAperture);
     drawIris();
+    drawEyelids(currentAperture);
 }
 
 void EyeSprite::setAlarmState(AlarmState as) {
@@ -255,21 +384,21 @@ void EyeSprite::setAlarmState(AlarmState as) {
     switch (as)
     {
     case disarmed:
-        irisPosYc = static_cast<int16_t>(midH + irisPosYcLoweringCoeff * width);
+        irisPosYc = static_cast<int16_t>(baselineY + irisPosYcLoweringCoeff * eyeWidth);
         irisColor = irisBaseColor;
         pupilSourceHeight = basePupilSourceHeight;
         pupilRadius = basePupilRadius;
         break;
     case armedHome:
     case armedAway:
-        irisPosYc = midH;
+        irisPosYc = baselineY;
         irisColor = irisBaseColor;
         pupilSourceHeight = 0;
         pupilRadius = basePupilRadius;
         break;
     case soundAlarm:
     case lockdown:
-        irisPosYc = midH;
+        irisPosYc = baselineY;
         irisColor = irisAngryColor;
         pupilSourceHeight = 0;
         pupilRadius = basePupilRadius - 4;
@@ -282,16 +411,13 @@ void EyeSprite::setAlarmState(AlarmState as) {
 }
 
 void EyeSprite::push() const {
-    irisSprite->pushToSprite(sumSprite, (irisPosXc - irisRadius), (irisPosYc - irisRadius), transparentColor);
-    lidsSprite->pushToSprite(sumSprite, 0, 0, transparentColor);
-    sumSprite->pushSprite(posX, posY, transparentColor);
+    // Push directly to screen - no need to composite sprites
+    sumSprite->pushSprite(posX, posY + spriteOffsetY, transparentColor);
 }
 
 EyeSprite::~EyeSprite() {
     if (displayManager != nullptr) {
         displayManager->deleteSprite(sumSprite);
-        displayManager->deleteSprite(lidsSprite);
-        displayManager->deleteSprite(irisSprite);
     }
 }
 
@@ -333,8 +459,7 @@ void KeypadKey::push() {
     tft->setTextSize(textSize);
     tft->setTextFont(textFont);
     tft->setCursor(textX, textY);
-    if (ch == 'b') tft->print("<");
-    else tft->print(ch);
+    tft->print(ch);
 }
 
 void KeypadKey::select(bool s) {
@@ -400,30 +525,23 @@ void KeypadGraph::pushAll() {
 
 void KeypadGraph::pushBufferedNumber(int16_t position, bool selected) {
 
-    int16_t posX {static_cast<int16_t>((KeypadGraph::posX + ((width - pinProgressWidth) / 2)) + position * (pinProgressWidth / 5) - pinProgressCircleRadius)};
-    
-    // Circle center position
+    int16_t posX {static_cast<int16_t>((KeypadGraph::posX + ((width - pinProgressWidth) / 2)) + position * (pinProgressWidth / 5))};
     static int16_t circleCenterY {KeypadGraph::posY + pinProgressHeight / 2};
-    
-    // Rectangle top-left position - aligned so rect is centered on circle
-    static int16_t rectTopLeftX {static_cast<int16_t>(posX - pinProgressCircleRadius)};
     static int16_t rectTopLeftY {static_cast<int16_t>(circleCenterY - (pinProgressRectHeight / 2))};
 
     if (selected) {
         tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, charColor);
     }
     else {
-        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, bgColor); // Clear the circle
-        tft->fillRoundRect(posX - pinProgressCircleRadius, rectTopLeftY, 
-                          pinProgressCircleRadius * 2, pinProgressRectHeight, 
-                          pinProgressRectHeight / 2, charColor); // Use fillRoundRect for rounded corners
+        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, bgColor);
+        tft->fillRoundRect(posX - pinProgressCircleRadius, rectTopLeftY, pinProgressCircleRadius * 2, 
+            pinProgressRectHeight, pinProgressRectHeight / 2, charColor);
     }
 }
 
 void KeypadGraph::setBufferedNumbers(int16_t numberOfBufferedNumbers) {
-    if (previousSelectedNumbers == numberOfBufferedNumbers) {
-        return;
-    }
+    if (numberOfBufferedNumbers > 6) return;
+    if (previousSelectedNumbers == numberOfBufferedNumbers) return;
     else if (previousSelectedNumbers > numberOfBufferedNumbers) {
         for (int i {}; i < (previousSelectedNumbers - numberOfBufferedNumbers); i++) {
             pushBufferedNumber(numberOfBufferedNumbers + i, false);
