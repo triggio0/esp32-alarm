@@ -20,15 +20,15 @@ public:
     void fillColor(uint16_t color = TFT_BLACK);
     int16_t width();
     int16_t height();
-    TFT_eSPI* getTFT();
     TFT_eSprite* createSprite(int16_t w, int16_t h);
     void deleteSprite(TFT_eSprite* sprite);
+    TFT_eSPI* getTFT();
 };
 
 
 class EyeSprite {
     /*
-    **  setup: begin(), setBackgroundColor()
+    **  setup: .begin()
     **  loop: update(), push()
     **  remember to update the state with setAlarmState()
     */
@@ -36,7 +36,7 @@ private:
 
     // ===== Sprites =====
     DisplayManager* displayManager;
-    TFT_eSprite* buffer;
+    TFT_eSprite* sumSprite;
     TFT_eSprite* lidsSprite;
     TFT_eSprite* irisSprite;
 
@@ -62,7 +62,7 @@ private:
     static constexpr float irisPosYcLoweringCoeff       {0.03};             // makes iris lower ( * width )
     static constexpr float irisRLDistanceCoeff          {0.22};             // 0 ~ 0.5, how far to the side it can look
     static constexpr float irisVelocity                 {0.5};
-    static constexpr int16_t basePupilRadius            {17};
+    static constexpr int16_t basePupilRadius            {20};
     static constexpr int16_t pupilDistanceFromCenter    {15};               // distance from iris center - will be scaled after
     static constexpr int16_t basePupilSourceHeight      {25};               // higher = looks further down
     static constexpr uint16_t blinkInterval             {5 * 1000};
@@ -70,11 +70,12 @@ private:
     static constexpr uint16_t lookAroundPause           {2000};             // how long it looks in a specific direction
 
     // ===== Colors =====
-    static constexpr uint16_t lidColor                  {TFT_BLACK};
-    static constexpr uint16_t irisBaseColor             {TFT_BLACK};
+    static constexpr uint16_t transparentColor          {0xABCD};
+    static constexpr uint16_t backgroundColor           {TFT_BLACK};
+    static constexpr uint16_t lidColor                  {TFT_WHITE};
+    static constexpr uint16_t irisBaseColor             {TFT_WHITE};
     static constexpr uint16_t irisAngryColor            {TFT_RED};
-    static constexpr uint16_t pupilColor                {TFT_WHITE};
-    uint16_t backgroundColor                            {TFT_WHITE};
+    static constexpr uint16_t pupilColor                {TFT_BLACK};
 
     // ===== Derived Constants =====
     static constexpr int16_t halfWidth {static_cast<int16_t>(width / 2)};
@@ -91,8 +92,8 @@ private:
     uint32_t startBlink {};
 
     // ===== Iris =====
-    int16_t irisPosXc {static_cast<int16_t>(halfWidth)};                    // wrt buffer
-    int16_t irisPosYc {midH};                                               // wrt buffer
+    int16_t irisPosXc {static_cast<int16_t>(halfWidth)};                    // wrt sumSprite
+    int16_t irisPosYc {midH};                                               // wrt sumSprite
     IrisPosition currentIrisPos {center};
     IrisPosition targetIrisPosition {center};
     int32_t startIrisMove {};
@@ -122,7 +123,6 @@ private:
 
 public:
     void begin(DisplayManager* displayManager);
-    void setBackgroundColor(uint16_t color) {backgroundColor = color;};
     void update();
     void setAlarmState(AlarmState as);
     void push() const;

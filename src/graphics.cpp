@@ -21,12 +21,9 @@ int16_t DisplayManager::height() {
     return tft.height();
 }
 
-
-
 TFT_eSprite* DisplayManager::createSprite(int16_t w, int16_t h) {
     TFT_eSprite* sprite = new TFT_eSprite(&tft);
     sprite->createSprite(w, h);
-    sprite->setColorDepth(8);
     return sprite;
 }
 
@@ -35,11 +32,13 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
         sprite->deleteSprite();
         delete sprite;
     }
-};
+}
 
 TFT_eSPI* DisplayManager::getTFT() {
     return &tft;
 }
+
+
 
 void EyeSprite::drawEyelid(float distFromBaseline, uint16_t color, bool outlineMode) {
     int16_t x0 {static_cast<int16_t>((outlineMode ? 0 : 1))};
@@ -228,7 +227,7 @@ void EyeSprite::begin(DisplayManager* dM) {
     startTime = millis();
 
     displayManager = dM;
-    buffer = displayManager->createSprite(width, height);
+    sumSprite = displayManager->createSprite(width, height);
     lidsSprite = displayManager->createSprite(width, height);
     irisSprite = displayManager->createSprite(irisRadius * 2 + 1, irisRadius * 2 + 1);
 
@@ -238,7 +237,7 @@ void EyeSprite::begin(DisplayManager* dM) {
 }
 
 void EyeSprite::update() {
-    buffer->fillSprite(backgroundColor);
+    sumSprite->fillScreen(backgroundColor);
     lidsSprite->fillSprite(backgroundColor);
     irisSprite->fillSprite(transparentColor);
 
@@ -283,14 +282,14 @@ void EyeSprite::setAlarmState(AlarmState as) {
 }
 
 void EyeSprite::push() const {
-    irisSprite->pushToSprite(buffer, (irisPosXc - irisRadius), (irisPosYc - irisRadius), transparentColor);
-    lidsSprite->pushToSprite(buffer, 0, 0, transparentColor);
-    buffer->pushSprite(posX, posY, transparentColor);
+    irisSprite->pushToSprite(sumSprite, (irisPosXc - irisRadius), (irisPosYc - irisRadius), transparentColor);
+    lidsSprite->pushToSprite(sumSprite, 0, 0, transparentColor);
+    sumSprite->pushSprite(posX, posY, transparentColor);
 }
 
 EyeSprite::~EyeSprite() {
     if (displayManager != nullptr) {
-        displayManager->deleteSprite(buffer);
+        displayManager->deleteSprite(sumSprite);
         displayManager->deleteSprite(lidsSprite);
         displayManager->deleteSprite(irisSprite);
     }

@@ -27,38 +27,40 @@ void setup() {
     pinMode(0, INPUT_PULLUP);
     
     displayManager.begin();
-    displayManager.fillColor(TFT_GREEN);
+    displayManager.fillColor(TFT_BLACK);
 
-    // eyeSprite.begin(&displayManager);
-    // eyeSprite.setAlarmState(currentState);
+
+    eyeSprite.begin(&displayManager);
+    eyeSprite.setAlarmState(currentState);
 
     keypadGraph.begin(&displayManager);
     keypadGraph.pushAll();
-    
+
     keypadGraph.selectKey('4');
 
     delay(1000);
     keypadGraph.setBufferedNumbers(4);
     delay(1000);
     keypadGraph.setBufferedNumbers(3);
+    
+    getHeapUsedPercent();
 }
 
 void loop() {
 
 
-    // eyeSprite.update();
-    // eyeSprite.push();
+    eyeSprite.update();
+    eyeSprite.push();
+    
 
-    // if (digitalRead(0) == LOW) {
-    //     if (currentState == disarmed) currentState = armedAway;
-    //     else if (currentState == armedAway) currentState = soundAlarm;
-    //     else if (currentState == soundAlarm) currentState = disarmed;
-    //     eyeSprite.setAlarmState(currentState);
-    //     Serial.println(currentState);
-    //     delay(100);
-    // }
-
-    // Serial.printf("Heap used: %.1f%%\n", getHeapUsedPercent());
+    if (digitalRead(0) == LOW) {
+        if (currentState == disarmed) currentState = armedAway;
+        else if (currentState == armedAway) currentState = soundAlarm;
+        else if (currentState == soundAlarm) currentState = disarmed;
+        eyeSprite.setAlarmState(currentState);
+        Serial.println(currentState);
+        delay(100);
+    }
 
     delay(16);
 }
