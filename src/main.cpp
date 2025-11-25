@@ -3,7 +3,7 @@
 
 DisplayManager displayManager;
 EyeSprite eyeSprite;
-KeypadSprite keypadSprite;
+KeypadGraph keypadGraph;
 AlarmState currentState {disarmed};
 
 
@@ -32,8 +32,10 @@ void setup() {
     // eyeSprite.begin(&displayManager);
     // eyeSprite.setAlarmState(currentState);
 
-    keypadSprite.begin(&displayManager);
-    keypadSprite.pushAll();
+    keypadGraph.begin(&displayManager);
+    keypadGraph.pushAll();
+    
+    keypadGraph.selectKey('4');
 
     
 }
@@ -44,8 +46,6 @@ void loop() {
     // eyeSprite.update();
     // eyeSprite.push();
 
-    keypadSprite.push();
-
     // if (digitalRead(0) == LOW) {
     //     if (currentState == disarmed) currentState = armedAway;
     //     else if (currentState == armedAway) currentState = soundAlarm;
@@ -55,10 +55,7 @@ void loop() {
     //     delay(100);
     // }
 
-    Serial.printf("Heap used: %.1f%%\n", getHeapUsedPercent());
-
-
-
+    // Serial.printf("Heap used: %.1f%%\n", getHeapUsedPercent());
 
     delay(16);
 }

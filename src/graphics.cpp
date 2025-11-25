@@ -21,6 +21,8 @@ int16_t DisplayManager::height() {
     return tft.height();
 }
 
+
+
 TFT_eSprite* DisplayManager::createSprite(int16_t w, int16_t h) {
     TFT_eSprite* sprite = new TFT_eSprite(&tft);
     sprite->createSprite(w, h);
@@ -35,7 +37,9 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
     }
 };
 
-
+TFT_eSPI* DisplayManager::getTFT() {
+    return &tft;
+}
 
 void EyeSprite::drawEyelid(float distFromBaseline, uint16_t color, bool outlineMode) {
     int16_t x0 {static_cast<int16_t>((outlineMode ? 0 : 1))};
@@ -294,7 +298,11 @@ EyeSprite::~EyeSprite() {
 
 
 
-TFT_eSprite* KeypadKey::buffer {nullptr};
+
+
+
+
+TFT_eSPI* KeypadKey::tft {nullptr};
 int16_t KeypadKey::width {};
 int16_t KeypadKey::height {};
 int16_t KeypadKey::cornerRadius {};
@@ -304,7 +312,7 @@ uint16_t KeypadKey::charColor {};
 
 KeypadKey::KeypadKey(char ch, int16_t posX, int16_t posY) : ch{ch}, posX{posX}, posY{posY} {}
 
-void KeypadKey::setup(int16_t w, int16_t h, int16_t cR, uint16_t bg, uint16_t bgSel, uint16_t chr, TFT_eSprite* buf) {
+void KeypadKey::setup(int16_t w, int16_t h, int16_t cR, uint16_t bg, uint16_t bgSel, uint16_t chr, TFT_eSPI* tft) {
     KeypadKey::width = w;
     KeypadKey::height = h;
     KeypadKey::cornerRadius = cR;
@@ -313,18 +321,21 @@ void KeypadKey::setup(int16_t w, int16_t h, int16_t cR, uint16_t bg, uint16_t bg
     KeypadKey::bgSelectColor = bgSel;
     KeypadKey::charColor = chr;
 
-    KeypadKey::buffer = buf;
+    KeypadKey::tft = tft;
 }
 
 void KeypadKey::push() {
-    buffer->fillRoundRect(posX, posY, width, height, cornerRadius, selected ? bgColor : bgSelectColor);
+    tft->fillRoundRect(posX, posY, width, height, cornerRadius, selected ? bgSelectColor : bgColor);
 
     int16_t textX {static_cast<int16_t>(posX + width / 2 - 8)};   // approx centering for size 2
     int16_t textY {static_cast<int16_t>(posY + height / 2 - 8)};  // approx centering for size 2
-    buffer->setTextColor(charColor, bgColor);
-    buffer->setTextSize(2);
-    buffer->setCursor(textX, textY);
-    buffer->print(ch);
+    tft->setTextColor(charColor);
+
+    tft->setTextSize(textSize);
+    tft->setTextFont(textFont);
+    tft->setCursor(textX, textY);
+    if (ch == 'b') tft->print("<");
+    else tft->print(ch);
 }
 
 void KeypadKey::select(bool s) {
@@ -333,28 +344,32 @@ void KeypadKey::select(bool s) {
 
 
 
-void KeypadSprite::begin(DisplayManager* dM) {
-    if (initialized) return;
-    initialized = true;
 
+
+
+void KeypadGraph::begin(DisplayManager* dM) {
+    if (initialized) return;
+
+    if (!dM) return;
     startTime = millis();
     displayManager = dM;
-    buffer = displayManager->createSprite(width, height);
-    buffer->fillSprite(bgColor);
+    tft = displayManager->getTFT();
 
-    int16_t keyHeight {height / 4};
-    int16_t keyWidth {width / 3};
+    int16_t keyHeight {static_cast<int16_t>(((height - pinProgressHeight) / 4) - 2 * keySidePaddingY)};
+    int16_t keyWidth {static_cast<int16_t>((width / 3) - 2 * keySidePaddingX)};
 
     for (int i {}; i < 12; i++) {
-        int16_t keyPosX {static_cast<int16_t>((i % 3) * keyWidth)};
-        int16_t keyPosY {static_cast<int16_t>(pinProgressHeight + (i / 3) * keyHeight)};
+        int16_t keyPosX = static_cast<int16_t>(posX + keySidePaddingX + (i % 3) * (keyWidth + 2 * keySidePaddingX));
+        int16_t keyPosY = static_cast<int16_t>(posY + pinProgressHeight + keySidePaddingY + (i / 3) * (keyHeight + 2 * keySidePaddingY));
 
         keyArray[i] = KeypadKey{allChars[i], keyPosX, keyPosY};
     }
-    keyArray[0].setup(keyWidth, keyHeight, cornerRadius, keyBgColor, keyBgSelectColor, charColor, buffer);
+    keyArray[0].setup(keyWidth, keyHeight, cornerRadius, keyBgColor, keyBgSelectColor, charColor, tft);
+
+    initialized = true;
 }
 
-void KeypadSprite::selectKey(char ch) {
+void KeypadGraph::selectKey(char ch) {
     for (int i {}; allChars[i] != '\0'; i++) {
         if (allChars[i] == ch) {
             keyArray[i].select(true);
@@ -364,7 +379,7 @@ void KeypadSprite::selectKey(char ch) {
     }
 }
 
-void KeypadSprite::deselectKey(char ch) {
+void KeypadGraph::deselectKey(char ch) {
     for (int i {}; allChars[i] != '\0'; i++) {
         if (allChars[i] == ch) {
             keyArray[i].select(false);
@@ -374,20 +389,9 @@ void KeypadSprite::deselectKey(char ch) {
     }
 }
 
-void KeypadSprite::pushAll() {
-    buffer->fillSprite(TFT_BLUE);
+void KeypadGraph::pushAll() {
+    tft->fillRect(posX, posY, width, height, bgColor);
     for (int i {}; allChars[i] != '\0'; i++) {
         keyArray[i].push();
-    }
-    buffer->pushSprite(posX, posY, transparentColor);
-}
-
-void KeypadSprite::push() const {
-    buffer->pushSprite(posX, posY, transparentColor);
-}
-
-KeypadSprite::~KeypadSprite() {
-    if (displayManager != nullptr) {
-        displayManager->deleteSprite(buffer);
     }
 }

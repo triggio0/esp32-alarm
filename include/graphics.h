@@ -20,6 +20,7 @@ public:
     void fillColor(uint16_t color = TFT_BLACK);
     int16_t width();
     int16_t height();
+    TFT_eSPI* getTFT();
     TFT_eSprite* createSprite(int16_t w, int16_t h);
     void deleteSprite(TFT_eSprite* sprite);
 };
@@ -133,8 +134,10 @@ public:
 class KeypadKey {
 private:
 
-    static TFT_eSprite* buffer;
+    static TFT_eSPI* tft;
 
+    static constexpr uint8_t textSize {1};
+    static constexpr uint8_t textFont {4};
     static int16_t width;
     static int16_t height;
     static int16_t cornerRadius;
@@ -153,7 +156,7 @@ private:
 public:
     KeypadKey() = default;
     KeypadKey(char ch, int16_t posX, int16_t posY);
-    void setup(int16_t width, int16_t height, int16_t cornerRadius, uint16_t bgColor, uint16_t bgSelectColor, uint16_t charColor, TFT_eSprite* buffer);
+    void setup(int16_t width, int16_t height, int16_t cornerRadius, uint16_t bgColor, uint16_t bgSelectColor, uint16_t charColor, TFT_eSPI* tft);
     void push();
     void select (bool s);
 };
@@ -163,38 +166,38 @@ public:
 
 
 
-class KeypadSprite {
+class KeypadGraph {
 private:
     DisplayManager* displayManager;
-    TFT_eSprite* buffer;
+    TFT_eSPI* tft;
 
     bool initialized = {false};
 
     uint32_t startTime {};
 
     static constexpr int16_t posX {10};
-    static constexpr int16_t posY {100};
+    static constexpr int16_t posY {200};
     static constexpr int16_t width {300};
-    static constexpr int16_t height {100};
+    static constexpr int16_t height {270};
     static constexpr int16_t cornerRadius {3};
     static constexpr int16_t pinProgressHeight {20};
+    static constexpr int16_t keySidePaddingX {5};        // half of the space between keys
+    static constexpr int16_t keySidePaddingY {5};
 
     static constexpr uint16_t keyBgColor {TFT_LIGHTGREY};
     static constexpr uint16_t keyBgSelectColor {TFT_DARKGREY};
     static constexpr uint16_t charColor {TFT_BLACK};
-    static constexpr uint16_t bgColor {TFT_GREEN};
+    static constexpr uint16_t bgColor {TFT_WHITE};
 
     const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', 'b', '\0'};
     KeypadKey keyArray[12];
 
-    char selectedKey {' '};
-    bool toUpdate {};
+    // int16_t previousSelectedNumbers {};
 
 public:
     void begin(DisplayManager* displayManager);
     void selectKey(char ch);
     void deselectKey(char ch);
     void pushAll();
-    void push() const;
-    ~KeypadSprite();
+    // void setBufferednumbers(int16_t NumberOfBufferedNumbers);
 };
