@@ -27,7 +27,7 @@ void setup() {
     pinMode(0, INPUT_PULLUP);
     
     displayManager.begin();
-    displayManager.fillColor(TFT_WHITE);
+    displayManager.fillColor(TFT_GREEN);
 
     // eyeSprite.begin(&displayManager);
     // eyeSprite.setAlarmState(currentState);
@@ -37,7 +37,10 @@ void setup() {
     
     keypadGraph.selectKey('4');
 
-    
+    delay(1000);
+    keypadGraph.setBufferedNumbers(4);
+    delay(1000);
+    keypadGraph.setBufferedNumbers(3);
 }
 
 void loop() {

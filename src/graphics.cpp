@@ -394,4 +394,47 @@ void KeypadGraph::pushAll() {
     for (int i {}; allChars[i] != '\0'; i++) {
         keyArray[i].push();
     }
+    for (int i {}; i < 6; i++) {
+        pushBufferedNumber(i, false);
+    }
 }
+
+void KeypadGraph::pushBufferedNumber(int16_t position, bool selected) {
+
+    int16_t posX {static_cast<int16_t>((KeypadGraph::posX + ((width - pinProgressWidth) / 2)) + position * (pinProgressWidth / 5) - pinProgressCircleRadius)};
+    
+    // Circle center position
+    static int16_t circleCenterY {KeypadGraph::posY + pinProgressHeight / 2};
+    
+    // Rectangle top-left position - aligned so rect is centered on circle
+    static int16_t rectTopLeftX {static_cast<int16_t>(posX - pinProgressCircleRadius)};
+    static int16_t rectTopLeftY {static_cast<int16_t>(circleCenterY - (pinProgressRectHeight / 2))};
+
+    if (selected) {
+        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, charColor);
+    }
+    else {
+        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, bgColor); // Clear the circle
+        tft->fillRoundRect(posX - pinProgressCircleRadius, rectTopLeftY, 
+                          pinProgressCircleRadius * 2, pinProgressRectHeight, 
+                          pinProgressRectHeight / 2, charColor); // Use fillRoundRect for rounded corners
+    }
+}
+
+void KeypadGraph::setBufferedNumbers(int16_t numberOfBufferedNumbers) {
+    if (previousSelectedNumbers == numberOfBufferedNumbers) {
+        return;
+    }
+    else if (previousSelectedNumbers > numberOfBufferedNumbers) {
+        for (int i {}; i < (previousSelectedNumbers - numberOfBufferedNumbers); i++) {
+            pushBufferedNumber(numberOfBufferedNumbers + i, false);
+        }
+    }
+    else /* previousSelectedNumbers < numberOfBufferedNumbers */{
+        for (int i {}; i < (numberOfBufferedNumbers - previousSelectedNumbers); i++) {
+            pushBufferedNumber(previousSelectedNumbers + i, true);
+        }
+    }
+    previousSelectedNumbers = numberOfBufferedNumbers;
+}
+

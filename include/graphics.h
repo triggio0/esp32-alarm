@@ -175,14 +175,17 @@ private:
 
     uint32_t startTime {};
 
-    static constexpr int16_t posX {10};
-    static constexpr int16_t posY {200};
-    static constexpr int16_t width {300};
-    static constexpr int16_t height {270};
+    static constexpr int16_t posX {5};
+    static constexpr int16_t posY {180};
+    static constexpr int16_t width {310};
+    static constexpr int16_t height {290};
     static constexpr int16_t cornerRadius {3};
-    static constexpr int16_t pinProgressHeight {20};
     static constexpr int16_t keySidePaddingX {5};        // half of the space between keys
     static constexpr int16_t keySidePaddingY {5};
+    static constexpr int16_t pinProgressHeight {40};
+    static constexpr int16_t pinProgressWidth {160};
+    static constexpr int16_t pinProgressCircleRadius {8};       // also used for width of rectangle
+    static constexpr int16_t pinProgressRectHeight {4};
 
     static constexpr uint16_t keyBgColor {TFT_LIGHTGREY};
     static constexpr uint16_t keyBgSelectColor {TFT_DARKGREY};
@@ -192,12 +195,14 @@ private:
     const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', 'b', '\0'};
     KeypadKey keyArray[12];
 
-    // int16_t previousSelectedNumbers {};
+    int16_t previousSelectedNumbers {};
+
+    void pushBufferedNumber(int16_t position, bool selected);
 
 public:
     void begin(DisplayManager* displayManager);
     void selectKey(char ch);
     void deselectKey(char ch);
     void pushAll();
-    // void setBufferednumbers(int16_t NumberOfBufferedNumbers);
+    void setBufferedNumbers(int16_t numberOfBufferedNumbers);
 };
