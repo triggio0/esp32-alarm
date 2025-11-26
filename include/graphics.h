@@ -51,7 +51,7 @@ private:
     static constexpr uint8_t baseAperture               {90};
     static constexpr float tIncrease                    {0.003};            // decrese to avoid zebra stripes on lids
     static constexpr uint16_t blinkClosingTime          {70};
-    static constexpr uint16_t blinkOpeningTime          {120};
+    static constexpr uint16_t blinkOpeningTime          {130};
     static constexpr int16_t irisRadius                 {38};
     static constexpr float irisPosYcLoweringCoeff       {0.03};             // makes iris lower ( * eyeWidth )
     static constexpr float irisRLDistanceCoeff          {0.22};             // 0 ~ 0.5, how far to the side it can look
@@ -109,7 +109,6 @@ private:
     int16_t pupilSourceHeight {basePupilSourceHeight};
 
     void calculateSpriteBounds();
-    void drawEyelid(float distFromBaseline, uint16_t color, bool outlineMode=false);
     void drawEyelids(uint8_t aperturePercentage);
     void updateBlink();
     void drawIris();
@@ -178,7 +177,7 @@ private:
     static constexpr int16_t width {310};
     static constexpr int16_t height {290};
     static constexpr int16_t cornerRadius {3};
-    static constexpr int16_t keySidePaddingX {5};        // half of the space between keys
+    static constexpr int16_t keySidePaddingX {5};               // half of the space between keys
     static constexpr int16_t keySidePaddingY {5};
     static constexpr int16_t pinProgressHeight {40};
     static constexpr int16_t pinProgressWidth {160};
