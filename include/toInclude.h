@@ -4,6 +4,8 @@
 #include <WiFi.h>
 #include <esp_now.h>
 
+#define TRANSPARENT_COLOR 0xABCDU
+
 namespace PinLayout {
     constexpr uint8_t ledRGB {48};
     
