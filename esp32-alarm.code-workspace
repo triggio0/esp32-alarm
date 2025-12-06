@@ -1,11 +1,7 @@
 {
-	"folders": [
-		{
-			"path": "Desktop/esp32alarm_backup/esp32-main-controller"
-		},
-		{
-			"path": "Desktop/esp32alarm_backup/esp32-window-sensor"
-		}
+  "folders": [
+    { "path": "esp32-main-controller" },
+    { "path": "esp32-window-sensor" }
 	],
 	"settings": {
 		"files.associations": {
