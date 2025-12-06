@@ -7,7 +7,7 @@
 DisplayManager displayManager;
 EyeSprite eyeSprite;
 KeypadGraph keypadGraph;
-MainMenuGraph MainMenuGraph;
+MainMenuGraph mainMenuGraph;
 AlarmState currentState {disarmed};
 
 float getHeapUsedPercent() {
@@ -38,9 +38,9 @@ void setup() {
     keypadGraph.selectKey('3');
     keypadGraph.setBufferedNumbers(3);
 
-    // MainMenuGraph.begin(&displayManager);
-    // MainMenuGraph.setEntryBool(camera, true);
-    // MainMenuGraph.pushAll();
+    // mainMenuGraph.begin(&displayManager);
+    // mainMenuGraph.setEntryBool(camera, true);
+    // mainMenuGraph.pushAll();
 
 
     getHeapUsedPercent();
