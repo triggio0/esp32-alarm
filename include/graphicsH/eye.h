@@ -100,7 +100,7 @@ private:
 public:
     void begin(DisplayManager* displayManager);
     void update();
-    void setAlarmState(AlarmState as);
+    // void setAlarmState(AlarmState as);
     void push() const;
     ~EyeSprite();
 };

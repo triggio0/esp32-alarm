@@ -1,5 +1,7 @@
 #pragma once
+#include <unordered_map>
 #include "displayManager.h"
+#include "toInclude.h"
 
 enum StatusScreenEntries {
     front_door,
@@ -44,34 +46,67 @@ public:
 };
 
 
-class StatusScreenGraph {
+
+
+class MainMenuGraph {
 private:
     DisplayManager* displayManager;
     TFT_eSPI* tft;
-    static constexpr uint8_t numEntries {5};
-    StatusEntry entries[numEntries];
 
     static constexpr int16_t posX {5};
-    static constexpr int16_t posY {180};
+    static constexpr int16_t posY {215};
     static constexpr int16_t width {310};
-    static constexpr int16_t height {290};
-    static constexpr int16_t headerHeight {30};
-    static constexpr int16_t lineHeight {30};
+    static constexpr int16_t height {260};
+    static constexpr int16_t headerHeight {25};
+    static constexpr int16_t lineHeight {26};
 
     static constexpr uint16_t bgColor {TFT_WHITE};
     static constexpr uint16_t textColor {TFT_BLACK};
     static constexpr uint16_t trueColor {TFT_GREEN};
     static constexpr uint16_t falseColor {TFT_RED};
+    static constexpr uint16_t buttonColor {TFT_LIGHTGREY};
+    static constexpr uint16_t buttonColorPressed {TFT_DARKGREY};
 
-    static constexpr int16_t textSize {2};       // minecraft style
+    static constexpr uint8_t numEntries {5};
+    StatusEntry entries[numEntries];
+    static constexpr int16_t textSize {2};
     static constexpr int16_t textFont {1};
-
-    // static constexpr int16_t textSize {1};
-    // static constexpr int16_t textFont {5};
     static constexpr int16_t textIndentation {6};
+
+    static const std::unordered_map<AlarmState, const char*> stateNames;
+    static const std::unordered_map<AlarmState, const char*> actionNames;
+    AlarmState currentState {armedAway};
+    static constexpr int16_t buttonNegY {40};           // measured from the buttom (center of rect)
+    static constexpr int16_t buttonHeight {55};
+    static constexpr int16_t buttonWidth {150};
+    static constexpr int16_t buttonCornerR {5};
+
+    static constexpr int16_t largeButtonHeight_submenu {80};
+    static constexpr int16_t largeButtonWidth_submenu {260};
+    static constexpr int16_t largeButtonCornerR_submenu {5};
+    static constexpr int16_t smallButtonHeight_submenu {55};
+    static constexpr int16_t interButtonSpacing_submenu {15};
+    static constexpr int16_t textFont_submenu {1};
+    static constexpr int16_t textSize_submenu {3};
+
+    bool mainButtonIsPressed {false};
+    bool armedHomeIsPressed {false};
+    bool armedAwayIsPressed {false};
+    bool backIsPressed {false};
+
+    bool isInSubmenu {false};
+
+    void pushButton();
+    void pushHeader();
+    void pushSubmenu();
 
 public:
     void begin(DisplayManager* dM);
     void setEntryBool(StatusScreenEntries entry, bool b);
+    void setAlarmState(AlarmState state);
     void pushAll();
+    void enterSubmenu();
+    void exitSubmenu();
+    void pressMainButton(bool pressed);
+    void pressSubmenuButton(int8_t button, bool pressed);
 };

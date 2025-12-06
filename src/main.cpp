@@ -7,10 +7,8 @@
 DisplayManager displayManager;
 EyeSprite eyeSprite;
 KeypadGraph keypadGraph;
-StatusScreenGraph statusScreenGraph;
+MainMenuGraph MainMenuGraph;
 AlarmState currentState {disarmed};
-
-
 
 float getHeapUsedPercent() {
     size_t total = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
@@ -19,8 +17,6 @@ float getHeapUsedPercent() {
     size_t used = total - freeBytes;
     return (float)used * 100.0f / (float)total;
 }
-
-
 
 void setup() {
     Serial.begin(115200);
@@ -38,14 +34,14 @@ void setup() {
     eyeSprite.begin(&displayManager);
     eyeSprite.setAlarmState(currentState);
 
-    // keypadGraph.begin(&displayManager);
-    // keypadGraph.pushAll();
-    // keypadGraph.selectKey('3');
-    // keypadGraph.setBufferedNumbers(3);
+    keypadGraph.begin(&displayManager);
+    keypadGraph.pushAll();
+    keypadGraph.selectKey('3');
+    keypadGraph.setBufferedNumbers(3);
 
-    statusScreenGraph.begin(&displayManager);
-    statusScreenGraph.setEntryBool(camera, true);
-    statusScreenGraph.pushAll();
+    // MainMenuGraph.begin(&displayManager);
+    // MainMenuGraph.setEntryBool(camera, true);
+    // MainMenuGraph.pushAll();
 
 
     getHeapUsedPercent();
@@ -54,19 +50,17 @@ void setup() {
 
 void loop() {
 
-
     eyeSprite.update();
     eyeSprite.push();
-    
 
-    // if (digitalRead(0) == LOW) {
-    //     if (currentState == disarmed) currentState = armedAway;
-    //     else if (currentState == armedAway) currentState = soundAlarm;
-    //     else if (currentState == soundAlarm) currentState = disarmed;
-    //     eyeSprite.setAlarmState(currentState);
-    //     Serial.println(currentState);
-    //     delay(100);
-    // }
+    if (digitalRead(0) == LOW) {
+        if (currentState == disarmed) currentState = armedAway;
+        else if (currentState == armedAway) currentState = soundAlarm;
+        else if (currentState == soundAlarm) currentState = disarmed;
+        eyeSprite.setAlarmState(currentState);
+        Serial.println(currentState);
+        delay(100);
+    }
 
     delay(16);
 }

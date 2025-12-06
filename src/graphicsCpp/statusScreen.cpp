@@ -66,8 +66,95 @@ void StatusEntry::push() {
 }
 
 
+const std::unordered_map<AlarmState, const char*> MainMenuGraph::actionNames = {
+    {disarmed,      "arm"},
+    {armedHome,     "disarm"},
+    {armedAway,     "disarm"},
+};
 
-void StatusScreenGraph::begin(DisplayManager* dM) {
+void MainMenuGraph::pushButton() {
+    tft->fillRoundRect(
+        posX + width/2 - buttonWidth/2,
+        posY + height - buttonNegY - buttonHeight/2,
+        buttonWidth,
+        buttonHeight,
+        buttonCornerR,
+        buttonColor
+    );
+    tft->setTextColor(textColor);
+    tft->setTextSize(textSize);
+    tft->setTextFont(textFont);
+    int16_t w {tft->textWidth(actionNames.at(currentState))};
+    tft->setCursor(posX + width/2 - w/2, posY + height - buttonNegY - buttonHeight/2 + (buttonHeight - textSize * 8) / 2);
+    tft->print(actionNames.at(currentState));
+}
+
+const std::unordered_map<AlarmState, const char*> MainMenuGraph::stateNames = {
+    {disarmed,      "==== Disarmed ===="},
+    {armedHome,     "=== Armed Home ==="},
+    {armedAway,     "=== Armed Away ==="},
+    {soundAlarm,    "== Sound  Alarm =="},
+    {lockdown,      "==== Lockdown ===="}
+};
+
+void MainMenuGraph::pushHeader() {
+    tft->setTextColor(textColor);
+    tft->setTextSize(textSize);
+    tft->setTextFont(textFont);
+    tft->setCursor(posX + width/2 - tft->textWidth(stateNames.at(currentState))/2, posY);
+    tft->print(stateNames.at(currentState));
+}
+
+void MainMenuGraph::pushSubmenu() {
+    static int16_t anchorX {posX + width/2 - largeButtonWidth_submenu/2};
+    tft->setTextColor(textColor);
+    tft->setTextSize(textSize_submenu);
+    tft->setTextFont(textFont_submenu);
+    // armed Home
+    tft->fillRoundRect(
+        anchorX,
+        posY,
+        largeButtonWidth_submenu,
+        largeButtonHeight_submenu,
+        largeButtonCornerR_submenu,
+        armedHomeIsPressed ? buttonColorPressed : buttonColor
+    );
+    tft->setCursor(
+        anchorX + largeButtonWidth_submenu/2 - tft->textWidth("Arm Home")/2,
+        posY + (largeButtonHeight_submenu - textSize_submenu * 8) / 2
+    );
+    tft->print("Arm Home");
+    // armed Away
+    tft->fillRoundRect(
+        anchorX,
+        posY + largeButtonHeight_submenu + interButtonSpacing_submenu,
+        largeButtonWidth_submenu,
+        largeButtonHeight_submenu,
+        largeButtonCornerR_submenu,
+        armedAwayIsPressed ? buttonColorPressed : buttonColor
+    );
+    tft->setCursor(
+        anchorX + largeButtonWidth_submenu/2 - tft->textWidth("Arm Away")/2,
+        posY + largeButtonHeight_submenu + interButtonSpacing_submenu + (largeButtonHeight_submenu - textSize_submenu * 8) / 2
+    );
+    tft->print("Arm Away");
+    // back
+    tft->fillRoundRect(
+        anchorX,
+        posY + 2 * (largeButtonHeight_submenu + interButtonSpacing_submenu),
+        largeButtonWidth_submenu,
+        smallButtonHeight_submenu,
+        largeButtonCornerR_submenu,
+        backIsPressed ? buttonColorPressed : buttonColor
+    );
+    tft->setCursor(
+        anchorX + largeButtonWidth_submenu/2 - tft->textWidth("Back")/2,
+        posY + 2 * (largeButtonHeight_submenu + interButtonSpacing_submenu) + (smallButtonHeight_submenu - textSize_submenu * 8) / 2
+    );
+    tft->print("Back");
+}
+
+void MainMenuGraph::begin(DisplayManager* dM) {
     if (!dM) return;
     displayManager = dM;
     tft = displayManager->getTFT();
@@ -97,7 +184,7 @@ void StatusScreenGraph::begin(DisplayManager* dM) {
     }
 }
 
-void StatusScreenGraph::setEntryBool(StatusScreenEntries entry, bool b) {
+void MainMenuGraph::setEntryBool(StatusScreenEntries entry, bool b) {
     for (int i {}; i < numEntries; i++) {
         if (entries[i].getEntryID() == entry) {
             entries[i].setValue(b);
@@ -106,10 +193,54 @@ void StatusScreenGraph::setEntryBool(StatusScreenEntries entry, bool b) {
     }
 }
 
-void StatusScreenGraph::pushAll() {
+void MainMenuGraph::setAlarmState(AlarmState state) {
+    currentState = state;
+    pushHeader();
+    pushButton();
+}
+
+void MainMenuGraph::pushAll() {
     tft->fillRect(posX, posY, width, height, bgColor);
 
-    for (int i {}; i < numEntries; i++) {
-        entries[i].push();
+    if (isInSubmenu) {
+        pushSubmenu();
+    } else {
+        for (int i {}; i < numEntries; i++) {
+            entries[i].push();
+        }
+        pushHeader();
+        pushButton();
     }
+}
+
+void MainMenuGraph::enterSubmenu() {
+    isInSubmenu = true;
+    pushAll();
+}
+
+void MainMenuGraph::exitSubmenu() {
+    isInSubmenu = false;
+    pushAll();
+}
+
+void MainMenuGraph::pressMainButton(bool pressed) {
+    mainButtonIsPressed = pressed;
+    pushButton();
+}
+
+void MainMenuGraph::pressSubmenuButton(int8_t button, bool pressed) {
+    switch (button) {
+        case 0:
+            armedHomeIsPressed = pressed;
+            break;
+        case 1:
+            armedAwayIsPressed = pressed;
+            break;
+        case 2:
+            backIsPressed = pressed;
+            break;
+        default:
+            break;
+    }
+    pushSubmenu();
 }

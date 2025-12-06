@@ -37,4 +37,3 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
 TFT_eSPI* DisplayManager::getTFT() {
     return &tft;
 }
-

@@ -272,7 +272,7 @@ void EyeSprite::begin(DisplayManager* dM) {
 
     startTime = millis();
     displayManager = dM;
-    
+
     calculateSpriteBounds();
     sumSprite = displayManager->createSprite(spriteWidth, spriteHeight);
 
@@ -291,36 +291,36 @@ void EyeSprite::update() {
     drawEyelids(currentAperture);
 }
 
-void EyeSprite::setAlarmState(AlarmState as) {
-    alarmState = as;
-    switch (as)
-    {
-    case disarmed:
-        irisPosYc = static_cast<int16_t>(baselineY + irisPosYcLoweringCoeff * eyeWidth);
-        irisColor = irisBaseColor;
-        pupilSourceHeight = basePupilSourceHeight;
-        pupilRadius = basePupilRadius;
-        break;
-    case armedHome:
-    case armedAway:
-        irisPosYc = baselineY;
-        irisColor = irisBaseColor;
-        pupilSourceHeight = 0;
-        pupilRadius = basePupilRadius;
-        break;
-    case soundAlarm:
-    case lockdown:
-        irisPosYc = baselineY;
-        irisColor = irisAngryColor;
-        pupilSourceHeight = 0;
-        pupilRadius = basePupilRadius - 4;
-        break;
-    default:
-        break;
-    }
-    updateIrisPos();
-    computePupilPosition();
-}
+// void EyeSprite::setAlarmState(AlarmState as) {
+//     alarmState = as;
+//     switch (as)
+//     {
+//     case disarmed:
+//         irisPosYc = static_cast<int16_t>(baselineY + irisPosYcLoweringCoeff * eyeWidth);
+//         irisColor = irisBaseColor;
+//         pupilSourceHeight = basePupilSourceHeight;
+//         pupilRadius = basePupilRadius;
+//         break;
+//     case armedHome:
+//     case armedAway:
+//         irisPosYc = baselineY;
+//         irisColor = irisBaseColor;
+//         pupilSourceHeight = 0;
+//         pupilRadius = basePupilRadius;
+//         break;
+//     case soundAlarm:
+//     case lockdown:
+//         irisPosYc = baselineY;
+//         irisColor = irisAngryColor;
+//         pupilSourceHeight = 0;
+//         pupilRadius = basePupilRadius - 6;
+//         break;
+//     default:
+//         break;
+//     }
+//     updateIrisPos();
+//     computePupilPosition();
+// }
 
 void EyeSprite::push() const {
     // Push directly to screen - no need to composite sprites
