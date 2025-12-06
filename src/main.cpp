@@ -32,7 +32,6 @@ void setup() {
 
 
     eyeSprite.begin(&displayManager);
-    eyeSprite.setAlarmState(currentState);
 
     keypadGraph.begin(&displayManager);
     keypadGraph.pushAll();
@@ -52,15 +51,6 @@ void loop() {
 
     eyeSprite.update();
     eyeSprite.push();
-
-    if (digitalRead(0) == LOW) {
-        if (currentState == disarmed) currentState = armedAway;
-        else if (currentState == armedAway) currentState = soundAlarm;
-        else if (currentState == soundAlarm) currentState = disarmed;
-        eyeSprite.setAlarmState(currentState);
-        Serial.println(currentState);
-        delay(100);
-    }
 
     delay(16);
 }

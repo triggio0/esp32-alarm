@@ -43,7 +43,7 @@ void EyeSprite::calculateSpriteBounds() {
     baselineY = static_cast<int16_t>(-minY);
     spriteOffsetY = static_cast<int16_t>(minY);
     
-    irisPosYc = baselineY;
+    irisPosYc = static_cast<int16_t>(baselineY + irisPosYcLoweringCoeff * eyeWidth);
 }
 
 void EyeSprite::drawEyelids(uint8_t aperturePercentage) {
