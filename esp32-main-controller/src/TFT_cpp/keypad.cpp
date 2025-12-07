@@ -1,5 +1,5 @@
-#include "graphicsH/keypad.h"
-#include "graphicsH/displayManager.h"
+#include "TFT_h/keypad.h"
+#include "TFT_h/displayManager.h"
 
 TFT_eSPI* KeypadKey::tft {nullptr};
 int16_t KeypadKey::width {};

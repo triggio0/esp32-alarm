@@ -1,8 +1,8 @@
 #include "toInclude.h"
-#include "graphicsH/displayManager.h"
-#include "graphicsH/eye.h"
-#include "graphicsH/keypad.h"
-#include "graphicsH/statusScreen.h"
+#include "TFT_h/displayManager.h"
+#include "TFT_h/eye.h"
+#include "TFT_h/keypad.h"
+#include "TFT_h/statusScreen.h"
 #include "utils.h"
 
 DisplayManager displayManager;
