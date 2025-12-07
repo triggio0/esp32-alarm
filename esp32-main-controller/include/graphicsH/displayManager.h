@@ -1,9 +1,6 @@
 #pragma once
 #include <TFT_eSPI.h>
 #include "toInclude.h"
-#include "eye.h"
-#include "keypad.h"
-#include "statusScreen.h"
 
 class DisplayManager {
     /*
