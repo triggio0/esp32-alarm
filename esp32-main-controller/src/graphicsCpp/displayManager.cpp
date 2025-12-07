@@ -3,10 +3,20 @@
 void DisplayManager::begin() {
     if (initialized) return;
     tft.init();
-    tft.setRotation(0);     // pins at the top
+    tft.setRotation(screenRotation);
     fillColor();
+
+    ledcSetup(PinLayout::backlightChannel, pwmFreq, pwmResolution);
+    ledcAttachPin(PinLayout::tftBacklight, PinLayout::backlightChannel);
+    setBacklight(100);
+
     initialized = true;
     Serial.println("Display initialized!");
+}
+
+void DisplayManager::setBacklight(int16_t brightnessPercentage) {
+    int dutyCycle = (brightnessPercentage * ((1 << pwmResolution) - 1)) / 100;
+    ledcWrite(PinLayout::backlightChannel, dutyCycle);
 }
 
 void DisplayManager::fillColor(uint16_t color) {

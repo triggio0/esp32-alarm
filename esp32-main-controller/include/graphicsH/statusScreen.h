@@ -76,7 +76,7 @@ private:
     static const std::unordered_map<AlarmState, const char*> stateNames;
     static const std::unordered_map<AlarmState, const char*> actionNames;
     AlarmState currentState {armedAway};
-    static constexpr int16_t buttonNegY {40};           // measured from the buttom (center of rect)
+    static constexpr int16_t buttonNegY {40};           // measured from the bottom (center of rect)
     static constexpr int16_t buttonHeight {55};
     static constexpr int16_t buttonWidth {150};
     static constexpr int16_t buttonCornerR {5};

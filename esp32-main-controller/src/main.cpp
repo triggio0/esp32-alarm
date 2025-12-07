@@ -3,6 +3,7 @@
 #include "graphicsH/eye.h"
 #include "graphicsH/keypad.h"
 #include "graphicsH/statusScreen.h"
+#include "utils.h"
 
 DisplayManager displayManager;
 EyeSprite eyeSprite;
@@ -10,13 +11,7 @@ KeypadGraph keypadGraph;
 MainMenuGraph mainMenuGraph;
 AlarmState currentState {disarmed};
 
-float getHeapUsedPercent() {
-    size_t total = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
-    if (total == 0) return 0.0f;
-    size_t freeBytes = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
-    size_t used = total - freeBytes;
-    return (float)used * 100.0f / (float)total;
-}
+
 
 void setup() {
     Serial.begin(115200);
@@ -26,7 +21,7 @@ void setup() {
 
     randomSeed(analogRead(A0));
     pinMode(0, INPUT_PULLUP);
-    
+
     displayManager.begin();
     displayManager.fillColor(TFT_WHITE);
 

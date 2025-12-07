@@ -1,7 +1,9 @@
 #pragma once
 #include <TFT_eSPI.h>
-
-
+#include "toInclude.h"
+#include "eye.h"
+#include "keypad.h"
+#include "statusScreen.h"
 
 class DisplayManager {
     /*
@@ -10,6 +12,10 @@ class DisplayManager {
 private:
     TFT_eSPI tft = TFT_eSPI();
     bool initialized {false};
+    static constexpr int8_t screenRotation {0};     //pins at the top
+
+    static constexpr int16_t pwmFreq {5000};
+    static constexpr int16_t pwmResolution {8};
 
 public:
     void begin();
@@ -19,4 +25,5 @@ public:
     TFT_eSprite* createSprite(int16_t w, int16_t h);
     void deleteSprite(TFT_eSprite* sprite);
     TFT_eSPI* getTFT();
+    void setBacklight(int16_t brightnessPercentage);
 };
