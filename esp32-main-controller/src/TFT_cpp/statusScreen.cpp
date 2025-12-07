@@ -105,12 +105,11 @@ void MainMenuGraph::pushHeader() {
     tft->print(stateNames.at(currentState));
 }
 
-void MainMenuGraph::pushSubmenu() {
+void MainMenuGraph::pushArmedHomeButton() {
     static int16_t anchorX {posX + width/2 - largeButtonWidth_submenu/2};
     tft->setTextColor(textColor);
     tft->setTextSize(textSize_submenu);
     tft->setTextFont(textFont_submenu);
-    // armed Home
     tft->fillRoundRect(
         anchorX,
         posY,
@@ -124,7 +123,13 @@ void MainMenuGraph::pushSubmenu() {
         posY + (largeButtonHeight_submenu - textSize_submenu * 8) / 2
     );
     tft->print("Arm Home");
-    // armed Away
+}
+
+void MainMenuGraph::pushArmedAwayButton() {
+    static int16_t anchorX {posX + width/2 - largeButtonWidth_submenu/2};
+    tft->setTextColor(textColor);
+    tft->setTextSize(textSize_submenu);
+    tft->setTextFont(textFont_submenu);
     tft->fillRoundRect(
         anchorX,
         posY + largeButtonHeight_submenu + interButtonSpacing_submenu,
@@ -138,7 +143,13 @@ void MainMenuGraph::pushSubmenu() {
         posY + largeButtonHeight_submenu + interButtonSpacing_submenu + (largeButtonHeight_submenu - textSize_submenu * 8) / 2
     );
     tft->print("Arm Away");
-    // back
+}
+
+void MainMenuGraph::pushBackButton() {
+    static int16_t anchorX {posX + width/2 - largeButtonWidth_submenu/2};
+    tft->setTextColor(textColor);
+    tft->setTextSize(textSize_submenu);
+    tft->setTextFont(textFont_submenu);
     tft->fillRoundRect(
         anchorX,
         posY + 2 * (largeButtonHeight_submenu + interButtonSpacing_submenu),
@@ -182,6 +193,105 @@ void MainMenuGraph::begin(DisplayManager* dM) {
     for (int i {}; i < numEntries; i++) {
         setEntryBool(entries[i].getEntryID(), false);
     }
+
+    // armDisarmButton
+    armDisarmButton.startX = posX + width/2 - buttonWidth/2 - 5;                // -5/+5 added to make area easier to click
+    armDisarmButton.startY = posY + height - buttonNegY - buttonHeight/2 - 5;
+    armDisarmButton.endX = posX + width/2 + buttonWidth/2 + 5;
+    armDisarmButton.endY = posY + height - buttonNegY + buttonHeight/2 + 5;
+    // armedHomeButton
+    armedHomeButton.startX = posX + width/2 - largeButtonWidth_submenu/2;
+    armedHomeButton.startY = posY;
+    armedHomeButton.endX = posX + width/2 + largeButtonWidth_submenu/2;
+    armedHomeButton.endY = posY + largeButtonHeight_submenu;
+    // armedAwayButton
+    armedAwayButton.startX = posX + width/2 - largeButtonWidth_submenu/2;
+    armedAwayButton.startY = posY + largeButtonHeight_submenu + interButtonSpacing_submenu;
+    armedAwayButton.endX = posX + width/2 + largeButtonWidth_submenu/2;
+    armedAwayButton.endY = posY + 2*largeButtonHeight_submenu + interButtonSpacing_submenu;
+    // backButton
+    backButton.startX = posX + width/2 - largeButtonWidth_submenu/2;
+    backButton.startY =posY + 2 * (largeButtonHeight_submenu + interButtonSpacing_submenu);
+    backButton.endX = posX + width/2 + largeButtonWidth_submenu/2;
+    backButton.endY =posY + 2 * (largeButtonHeight_submenu + interButtonSpacing_submenu) + smallButtonHeight_submenu;
+
+}
+
+void MainMenuGraph::update() {
+    TouchPoint touchPoint {tsManager->getTouch()};
+    if (!touchPoint.valid) return;
+
+    if (isInSubmenu) {
+        if (armedHomeButton.containsPoint(touchPoint)) {
+            if (!armedHomeIsPressed) {
+                setAllButtonsFalse();
+                armedHomeIsPressed = true;
+                pushArmedHomeButton();
+            }
+            if (tsManager->isJustReleased()) {
+                setAllButtonsFalse();
+                // TODO: button press is confirmed - callback
+            }
+        } else if (armedAwayButton.containsPoint(touchPoint)) {
+            if (!armedAwayIsPressed) {
+                setAllButtonsFalse();
+                armedAwayIsPressed = true;
+                pushArmedAwayButton();
+            }
+            if (tsManager->isJustReleased()) {
+                setAllButtonsFalse();
+                // TODO: button press is confirmed - callback
+            }
+
+        } else if (backButton.containsPoint(touchPoint)) {
+            if (!backIsPressed) {
+                setAllButtonsFalse();
+                backIsPressed = true;
+                pushBackButton();
+            }
+            if (tsManager->isJustReleased()) {
+                setAllButtonsFalse();
+                isInSubmenu = false;
+                pushAll();
+            }
+        } else {        //pressing outside bounding boxes
+            if (armedHomeIsPressed) {
+                armedHomeIsPressed = false;
+                pushArmedHomeButton();
+            } else if (armedAwayIsPressed) {
+                armedAwayIsPressed = false;
+                pushArmedAwayButton();
+            } else if (backIsPressed) {
+                backIsPressed = false;
+                pushBackButton();
+            }
+        }
+    } else {            // is in main menu
+        if (armDisarmButton.containsPoint(touchPoint)) {
+            if (!armDisarmButtonIsPressed) {
+                armDisarmButtonIsPressed = true;
+                pushButton();
+            }
+            if (tsManager->isJustReleased()) {
+                armDisarmButtonIsPressed = false;
+                isInSubmenu = true;
+                pushAll();
+            }
+        } else {
+            if (armDisarmButtonIsPressed) {
+                armDisarmButtonIsPressed = false;
+                pushButton();
+            }
+        }
+    }
+}
+
+void MainMenuGraph::setAllButtonsFalse() {
+    armDisarmButtonIsPressed = false;
+    armedHomeIsPressed = false;
+    armedAwayIsPressed = false;
+    backIsPressed = false;
+
 }
 
 void MainMenuGraph::setEntryBool(StatusScreenEntries entry, bool b) {
@@ -203,7 +313,9 @@ void MainMenuGraph::pushAll() {
     tft->fillRect(posX, posY, width, height, bgColor);
 
     if (isInSubmenu) {
-        pushSubmenu();
+        pushArmedHomeButton();
+        pushArmedAwayButton();
+        pushBackButton();
     } else {
         for (int i {}; i < numEntries; i++) {
             entries[i].push();
@@ -223,24 +335,25 @@ void MainMenuGraph::exitSubmenu() {
     pushAll();
 }
 
-void MainMenuGraph::pressMainButton(bool pressed) {
-    mainButtonIsPressed = pressed;
-    pushButton();
-}
+// void MainMenuGraph::pressMainButton(bool pressed) {
+//     armDisarmButtonIsPressed = pressed;
+//     pushButton();
+// }
 
-void MainMenuGraph::pressSubmenuButton(int8_t button, bool pressed) {
-    switch (button) {
-        case 0:
-            armedHomeIsPressed = pressed;
-            break;
-        case 1:
-            armedAwayIsPressed = pressed;
-            break;
-        case 2:
-            backIsPressed = pressed;
-            break;
-        default:
-            break;
-    }
-    pushSubmenu();
-}
+// void MainMenuGraph::pressSubmenuButton(int8_t button, bool pressed) {
+//     switch (button) {
+//         case 0:
+//             armedHomeIsPressed = pressed;
+//             break;
+//         case 1:
+//             armedAwayIsPressed = pressed;
+//             break;
+//         case 2:
+//             backIsPressed = pressed;
+//             break;
+//         default:
+//             break;
+//     }
+//     pushSubmenu();
+// }
+

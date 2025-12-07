@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include "displayManager.h"
 #include "toInclude.h"
+#include "touchScreenManager.h"
 
 enum StatusScreenEntries {
     front_door,
@@ -51,6 +52,7 @@ public:
 class MainMenuGraph {
 private:
     DisplayManager* displayManager;
+    TouchScreenManager* tsManager;
     TFT_eSPI* tft;
 
     static constexpr int16_t posX {5};
@@ -89,7 +91,12 @@ private:
     static constexpr int16_t textFont_submenu {1};
     static constexpr int16_t textSize_submenu {3};
 
-    bool mainButtonIsPressed {false};
+    TouchRect armDisarmButton;
+    TouchRect armedAwayButton;
+    TouchRect armedHomeButton;
+    TouchRect backButton;
+
+    bool armDisarmButtonIsPressed {false};
     bool armedHomeIsPressed {false};
     bool armedAwayIsPressed {false};
     bool backIsPressed {false};
@@ -98,15 +105,18 @@ private:
 
     void pushButton();
     void pushHeader();
-    void pushSubmenu();
+    void pushArmedHomeButton();
+    void pushArmedAwayButton();
+    void pushBackButton();
+    void setAllButtonsFalse();
 
 public:
     void begin(DisplayManager* dM);
+    void update();
     void setEntryBool(StatusScreenEntries entry, bool b);
     void setAlarmState(AlarmState state);
     void pushAll();
     void enterSubmenu();
     void exitSubmenu();
-    void pressMainButton(bool pressed);
-    void pressSubmenuButton(int8_t button, bool pressed);
+
 };
