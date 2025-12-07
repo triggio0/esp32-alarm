@@ -1,4 +1,5 @@
 #include "graphicsH/displayManager.h"
+#include "config/pinLayout.h"
 
 void DisplayManager::begin() {
     if (initialized) return;
