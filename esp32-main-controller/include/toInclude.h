@@ -23,3 +23,5 @@ enum AlarmState {
     
     */
 };
+
+extern AlarmState alarmState;

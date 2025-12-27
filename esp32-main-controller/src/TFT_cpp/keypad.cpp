@@ -40,12 +40,13 @@ void KeypadKey::select(bool s) {
 }
 
 
-void KeypadGraph::begin(DisplayManager* dM) {
+void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     if (initialized) return;
 
-    if (!dM) return;
+    if (!dM || !tsM) return;
     startTime = millis();
     displayManager = dM;
+    tsManager = tsM;
     tft = displayManager->getTFT();
 
     int16_t keyHeight {static_cast<int16_t>(((height - pinProgressHeight) / 4) - 2 * keySidePaddingY)};
@@ -55,9 +56,26 @@ void KeypadGraph::begin(DisplayManager* dM) {
         int16_t keyPosX = static_cast<int16_t>(posX + keySidePaddingX + (i % 3) * (keyWidth + 2 * keySidePaddingX));
         int16_t keyPosY = static_cast<int16_t>(posY + pinProgressHeight + keySidePaddingY + (i / 3) * (keyHeight + 2 * keySidePaddingY));
 
-        keyArray[i] = KeypadKey{allChars[i], keyPosX, keyPosY};
+        KeypadKey keypadKey {allChars[i], keyPosX, keyPosY};
+        keyArray[i] = keypadKey;
+
+        TouchRect touchRect;
+        touchRect.startX = keyPosX - keySidePaddingX;
+        touchRect.startY = keyPosY - keySidePaddingY;
+        touchRect.endX = keyPosX + keyWidth + keySidePaddingX;
+        touchRect.endY = keyPosY + keyHeight + keySidePaddingY;
+
+        touchButtonArray[i] = TouchButton(
+            touchRect,
+            [&keypadKey](bool selected) {
+                keypadKey.select(selected);
+                keypadKey.push();
+            },
+            [&keypadKey]() {
+                // TODO: button pressed callback (generic number)
+            }
+        );
     }
-    // keyArray[0].setup(keyWidth, keyHeight, cornerRadius, keyBgColor, keyBgSelectColor, charColor, tft);
     KeypadKey::width = keyWidth;
     KeypadKey::height = keyHeight;
     KeypadKey::cornerRadius = cornerRadius;
@@ -65,6 +83,8 @@ void KeypadGraph::begin(DisplayManager* dM) {
     KeypadKey::bgSelectColor = keyBgSelectColor;
     KeypadKey::charColor = charColor;
     KeypadKey::tft = tft;
+
+    // TODO: add callback for < and C
 
     initialized = true;
 }
@@ -96,6 +116,15 @@ void KeypadGraph::pushAll() {
     }
     for (int i {}; i < 6; i++) {
         pushBufferedNumber(i, false);
+    }
+}
+
+void KeypadGraph::update() {
+    TouchPoint touchPoint {tsManager->getTouch()};
+    if (!touchPoint.valid) return;
+
+    for (int i {}; i < 12; i++) {
+        touchButtonArray[i].checkCollision(touchPoint);
     }
 }
 

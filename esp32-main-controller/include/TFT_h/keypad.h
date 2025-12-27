@@ -1,5 +1,6 @@
 #pragma once
 #include "displayManager.h"
+#include "touchScreenManager.h"
 
 class KeypadKey {
 public:
@@ -29,8 +30,13 @@ public:
 
 
 class KeypadGraph {
+    /*
+    **  setup: begin()
+    **  loop: update()
+    */
 private:
     DisplayManager* displayManager;
+    TouchScreenManager* tsManager;
     TFT_eSPI* tft;
 
     bool initialized = {false};
@@ -56,15 +62,17 @@ private:
 
     const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '<', '\0'};
     KeypadKey keyArray[12];
+    TouchButton touchButtonArray[12];
 
     int16_t previousSelectedNumbers {};
 
     void pushBufferedNumber(int16_t position, bool selected);
 
 public:
-    void begin(DisplayManager* displayManager);
+    void begin(DisplayManager* displayManager, TouchScreenManager* tsManager);
     void selectKey(char ch);
     void deselectKey(char ch);
     void pushAll();
+    void update();
     void setBufferedNumbers(int16_t numberOfBufferedNumbers);
 };

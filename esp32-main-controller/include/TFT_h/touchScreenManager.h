@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <functional>
 
 struct TouchPoint {
     int16_t x;
@@ -23,11 +24,39 @@ struct TouchRect {
     }
 };
 
+class TouchButton {
+private:
+    TouchRect boundingBox;
+    bool hovering {false};
+    std::function<void(bool hovering)> drawCallback;
+    std::function<void()> selectionCallback;
+public:
+    TouchButton() = default;
+    TouchButton(TouchRect bounds, std::function<void(bool hovering)> drawCb, std::function<void()> selectionCb) :
+        boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {}; 
+
+    bool checkCollision(TouchPoint touchPoint) {
+        if (boundingBox.containsPoint(touchPoint)) {
+            if (!hovering) {
+                drawCallback(true);
+            }
+            hovering = true;
+            return true;
+        } else {
+            if (hovering) {
+                drawCallback(false);
+            }
+            hovering = false;
+            return false;
+        }
+    }
+};
+
 class TouchScreenManager {
 private:
-    bool justReleased;
+    bool justReleased {false};
 public:
-    TouchPoint getTouch();
-    bool isJustReleased();
+    TouchPoint getTouch() { return TouchPoint(); }  // TODO: placeholder
+    bool isJustReleased() { return justReleased; };
 
 };

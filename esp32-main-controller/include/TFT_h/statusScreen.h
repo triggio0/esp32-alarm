@@ -48,8 +48,12 @@ public:
 
 
 
-
 class MainMenuGraph {
+    /*
+    **  setup: begin()
+    **  loop: update()
+    **  holds the main menu UI and the submenu for arming/disarming the alarm
+    */
 private:
     DisplayManager* displayManager;
     TouchScreenManager* tsManager;
@@ -91,10 +95,10 @@ private:
     static constexpr int16_t textFont_submenu {1};
     static constexpr int16_t textSize_submenu {3};
 
-    TouchRect armDisarmButton;
-    TouchRect armedAwayButton;
-    TouchRect armedHomeButton;
-    TouchRect backButton;
+    TouchButton armDisarmButton;
+    TouchButton armedHomeButton;
+    TouchButton armedAwayButton;
+    TouchButton backButton;
 
     bool armDisarmButtonIsPressed {false};
     bool armedHomeIsPressed {false};
@@ -103,20 +107,24 @@ private:
 
     bool isInSubmenu {false};
 
-    void pushButton();
+    void pushArmDisarmButton();
+    void pushArmDisarmButton(bool hovering);
     void pushHeader();
     void pushArmedHomeButton();
+    void pushArmedHomeButton(bool hovering);
     void pushArmedAwayButton();
+    void pushArmedAwayButton(bool hovering);
     void pushBackButton();
+    void pushBackButton(bool hovering);
     void setAllButtonsFalse();
+    void enterSubmenu();
+    void exitSubmenu();
 
 public:
-    void begin(DisplayManager* dM);
+    void begin(DisplayManager* dM, TouchScreenManager* tsM);
     void update();
     void setEntryBool(StatusScreenEntries entry, bool b);
     void setAlarmState(AlarmState state);
     void pushAll();
-    void enterSubmenu();
-    void exitSubmenu();
-
+    
 };

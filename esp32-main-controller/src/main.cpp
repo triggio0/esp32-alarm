@@ -1,11 +1,10 @@
 #include "toInclude.h"
 #include "utils.h"
 
-
-
-
 void maintainWiFiTask(void *param);
 void mainLoopTask(void *param);
+
+AlarmState alarmState = disarmed;
 
 void setup() {
 
@@ -17,20 +16,22 @@ void setup() {
     Serial.printf("PSRAM: %d MB\n", ESP.getPsramSize() / (1024*1024));
     Serial.print("MAC Address: ");
     Serial.println(WiFi.macAddress());
-    Serial.printf("Used heap: %f%", getHeapUsedPercent());
+    Serial.printf("Used heap: %.1f %%\n", getHeapUsedPercent());
     Serial.println("===========================================\n");
 
 
 
-    xTaskCreatePinnedToCore(
-        maintainWiFiTask,
-        "WiFi",
-        4096,
-        NULL,
-        1,
-        NULL,
-        0
-    );
+    // xTaskCreatePinnedToCore(
+    //     maintainWiFiTask,
+    //     "WiFi",
+    //     4096,
+    //     NULL,
+    //     1,
+    //     NULL,
+    //     0
+    // );
+
+    delay(5);
 
     xTaskCreatePinnedToCore(
         mainLoopTask,

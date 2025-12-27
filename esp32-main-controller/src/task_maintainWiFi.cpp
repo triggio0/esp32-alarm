@@ -22,7 +22,7 @@ void syncTime() {
 void maintainWiFiTask(void *param) {
     Serial.println("|  maintainWiFiTask  |> Task created ");
 
-    const unsigned long reconnectInterval {1000 * 30};
+    const unsigned long reconnectInterval {1000 * 60};
     const unsigned long syncTimeInterval {1000 * 60 * 60 * 24};
     
     Serial.println("|  maintainWiFiTask  |> Connecting to WiFi...");
