@@ -19,9 +19,15 @@ TouchScreenManager touchScreenManager;
 
 
 void manageState() {
-    
+
     eyeSprite.update();
     eyeSprite.push();
+
+    mainMenuGraph.update();
+
+    touchScreenManager.update();
+
+    
 
     return;
 }
@@ -104,12 +110,15 @@ void mainLoopTask(void *param) {
 
     // begin 
     displayManager.begin();
-    touchScreenManager = TouchScreenManager();
+    displayManager.fillColor(TFT_WHITE);
+    touchScreenManager.begin(displayManager.getTFT());
     keypadGraph.begin(&displayManager, &touchScreenManager);
     mainMenuGraph.begin(&displayManager, &touchScreenManager);
+    mainMenuGraph.setAlarmState(alarmState);
+    mainMenuGraph.pushAll();
     eyeSprite.begin(&displayManager);
 
-
+    // touchScreenManager.calibrateTouch();
 
     while (true) {
 

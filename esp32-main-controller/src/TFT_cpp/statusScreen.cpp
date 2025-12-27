@@ -213,7 +213,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
 
     // armDisarmButton
     TouchRect armDisarmButtonBounds;
-    armDisarmButtonBounds.startX = posX + width/2 - buttonWidth/2 - 5;                // -5/+5 added to make area easier to click
+    armDisarmButtonBounds.startX = posX + width/2 - buttonWidth/2 - 5;  // -5/+5 added to make area easier to click
     armDisarmButtonBounds.startY = posY + height - buttonNegY - buttonHeight/2 - 5;
     armDisarmButtonBounds.endX = posX + width/2 + buttonWidth/2 + 5;
     armDisarmButtonBounds.endY = posY + height - buttonNegY + buttonHeight/2 + 5;
@@ -240,7 +240,10 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             if (hovering) this->pushArmedHomeButton(true);
             else this->pushArmedHomeButton(false);
         },
-        [this]() { alarmState = armedHome; }        // TODO: arm home callback
+        [this]() {                                  // TODO: arm home callback
+            alarmState = armedHome;
+            setAlarmState(armedHome);
+        }
     );
     // armedAwayButton
     TouchRect armedAwayButtonBounds;
@@ -254,7 +257,10 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             if (hovering) this->pushArmedAwayButton(true);
             else this->pushArmedAwayButton(false);
         },
-        [this]() { alarmState = armedAway; }        // TODO: arm away callback
+        [this]() {                                  // TODO: arm away callback
+            alarmState = armedAway;
+            setAlarmState(armedAway);
+        }
     );
     // backButton
     TouchRect backButtonBounds;

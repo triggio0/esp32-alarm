@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <functional>
+#include <TFT_eSPI.h>
 
 struct TouchPoint {
     int16_t x;
@@ -8,6 +9,7 @@ struct TouchPoint {
     bool valid;
 
     TouchPoint() : x(0), y(0), valid(false) {}
+    TouchPoint(int16_t x, int16_t y, bool valid) : x(x), y(y), valid(valid) {}
 };
 
 struct TouchRect {
@@ -52,11 +54,62 @@ public:
     }
 };
 
+// class TouchScreenManager {
+// private:
+//     bool justReleased {false};
+// public:
+//     TouchPoint getTouch() { return TouchPoint(); };
+//     bool isJustReleased() { return justReleased; };
+
+// };
+
 class TouchScreenManager {
 private:
+    TFT_eSPI* tft;
     bool justReleased {false};
+    bool wasTouched {false};
+    TouchPoint lastTouch;
+    
+
+private:
+    TouchPoint readRawTouch();
 public:
-    TouchPoint getTouch() { return TouchPoint(); }  // TODO: placeholder
-    bool isJustReleased() { return justReleased; };
+    void begin(TFT_eSPI* tft_espi);
+    void update();
+    TouchPoint getTouch();
+    bool isJustReleased() { return justReleased; }
+
+    void calibrateTouch() {
+        if (!tft) return;
+        
+        uint16_t calData[5];
+        
+        tft->fillScreen(TFT_BLACK);
+        tft->setCursor(20, 0);
+        tft->setTextFont(2);
+        tft->setTextSize(1);
+        tft->setTextColor(TFT_WHITE, TFT_BLACK);
+        
+        tft->println("Touch corners as indicated");
+        tft->setTextFont(1);
+        tft->println();
+        
+        tft->calibrateTouch(calData, TFT_MAGENTA, TFT_BLACK, 15);
+        
+        // Print calibration data for future use
+        Serial.println("Touch calibration data:");
+        Serial.print("uint16_t calData[5] = {");
+        for (uint8_t i = 0; i < 5; i++) {
+            Serial.print(calData[i]);
+            if (i < 4) Serial.print(", ");
+        }
+        Serial.println("};");
+        
+        tft->fillScreen(TFT_BLACK);
+        tft->setTextColor(TFT_GREEN, TFT_BLACK);
+        tft->println("Calibration complete!");
+        delay(2000);
+    }
 
 };
+    
