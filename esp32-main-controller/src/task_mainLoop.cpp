@@ -21,93 +21,18 @@ TouchScreenManager touchScreenManager;
 void manageState() {
 
     eyeSprite.update();
-    eyeSprite.push();
-
+    eyeSprite.push();           // TODO: optimize, way too slow!!
+    
+    touchScreenManager.update();
     mainMenuGraph.update();
 
-    touchScreenManager.update();
-
-    
 
     return;
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-void disarmedLoop() {
-    
-    mainMenuGraph.pushAll();
-
-    while (true) {
-        eyeSprite.push();
-        eyeSprite.update();
-        mainMenuGraph.update();
-
-
-        if (currentAlarmState != disarmed) break;
-        delay(10);
-    }
-}
-
-void armedHomeLoop() {
-
-    mainMenuGraph.pushAll();
-
-    while (true) {
-        eyeSprite.push();
-        eyeSprite.update();
-        mainMenuGraph.update();
-
-        // TODO: read sensors
-
-        if (currentAlarmState != armedHome) break;
-        delay(10);
-    }
-}
-
-void manageState() {
-
-    mainMenuGraph.setAlarmState(currentAlarmState);
-
-    switch (currentAlarmState)
-    {
-    case disarmed:
-        disarmedLoop();
-        break;
-    case armedHome:
-        armedHomeLoop();
-        break;
-    case armedAway:
-        armedAwayLoop();
-        break;
-    case soundAlarm:
-        soundAlarmLoop();
-        break;
-    case lockdown:
-        lockdownLoop();
-        break;
-    default:
-        break;
-    }
-}
-*/
-
 void mainLoopTask(void *param) {
     Serial.println("|    mainLoopTask    |> Task created");
-
     // begin 
     displayManager.begin();
     displayManager.fillColor(TFT_WHITE);
@@ -117,13 +42,41 @@ void mainLoopTask(void *param) {
     mainMenuGraph.setAlarmState(alarmState);
     mainMenuGraph.pushAll();
     eyeSprite.begin(&displayManager);
-
-    // touchScreenManager.calibrateTouch();
-
+    eyeSprite.push(true);
+    
+    // FPS counter variables
+    uint32_t frameCount = 0;
+    uint32_t lastFpsTime = millis();
+    uint32_t totalWorkTime = 0;  // Track actual work time
+    
     while (true) {
-
+        uint32_t frameStart = millis();
+        
         manageState();
-
-        delay(10);
+        
+        uint32_t frameEnd = millis();
+        uint32_t workTime = frameEnd - frameStart;
+        totalWorkTime += workTime;
+        
+        // FPS calculation
+        frameCount++;
+        uint32_t currentTime = millis();
+        
+        // Print FPS every 5 seconds
+        if (currentTime - lastFpsTime >= 1000) {
+            uint32_t totalElapsed = currentTime - lastFpsTime;
+            float fps = frameCount * 1000.0 / totalElapsed;
+            float frameTime = totalElapsed / (float)frameCount;
+            float cpuUsage = (totalWorkTime * 100.0) / totalElapsed;
+            
+            Serial.printf("FPS: %.1f | Frame time: %.1f ms | CPU usage: %.1f%%\n", 
+                         fps, frameTime, cpuUsage);
+            
+            frameCount = 0;
+            totalWorkTime = 0;
+            lastFpsTime = currentTime;
+        }
+        
+        delay(0);
     }
 }

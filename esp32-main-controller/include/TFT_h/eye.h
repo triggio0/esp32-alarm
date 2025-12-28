@@ -13,6 +13,7 @@ private:
     // ===== Sprites =====
     DisplayManager* displayManager;
     TFT_eSprite* sumSprite;
+    TFT_eSPI* tft;
 
     // ===== General Stuff =====
     
@@ -20,6 +21,7 @@ private:
     AlarmState alarmState {disarmed};
     enum IrisPosition {left, center, right,};
     bool initialized {false};
+    bool needPush {true};
 
     // ===== Configuration Constants =====
     static constexpr int16_t posX                       {40};               // wrt screen
@@ -101,6 +103,6 @@ public:
     void begin(DisplayManager* displayManager);
     void update();
     // void setAlarmState(AlarmState as);
-    void push() const;
+    void push(bool forcePush=false);
     ~EyeSprite();
 };

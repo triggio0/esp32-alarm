@@ -79,7 +79,7 @@ void MainMenuGraph::pushArmDisarmButton() {
         buttonWidth,
         buttonHeight,
         buttonCornerR,
-        buttonColor
+        armDisarmButtonIsPressed ? buttonColorPressed : buttonColor
     );
     tft->setTextColor(textColor);
     tft->setTextSize(textSize);
@@ -220,12 +220,11 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     armDisarmButton = TouchButton(
         armDisarmButtonBounds,
         [this](bool hovering) {
-            if (hovering) this->pushArmDisarmButton(true);
-            else this->pushArmDisarmButton(false);
+            pushArmDisarmButton(hovering);
         },
         [this]() {
-            if (alarmState == disarmed) this->enterSubmenu();
-            else {}
+            if (alarmState == disarmed) enterSubmenu();
+            else if (alarmState == armedHome || alarmState == armedAway) {}         // TODO: add disarming sequence (insert unlock code)
         }
     );
     // armedHomeButton
@@ -237,12 +236,12 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     armedHomeButton = TouchButton(
         armedHomeButtonBounds,
         [this](bool hovering) {
-            if (hovering) this->pushArmedHomeButton(true);
-            else this->pushArmedHomeButton(false);
+            pushArmedHomeButton(hovering);
         },
         [this]() {                                  // TODO: arm home callback
             alarmState = armedHome;
             setAlarmState(armedHome);
+            exitSubmenu();
         }
     );
     // armedAwayButton
@@ -260,6 +259,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
         [this]() {                                  // TODO: arm away callback
             alarmState = armedAway;
             setAlarmState(armedAway);
+            exitSubmenu();
         }
     );
     // backButton
@@ -271,97 +271,32 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     backButton = TouchButton(
         backButtonBounds,
         [this](bool hovering) {
-            if (hovering) this->pushBackButton(true);
-            else this->pushBackButton(false);
+            if (hovering) pushBackButton(true);
+            else pushBackButton(false);
         },
-        [this]() { this->exitSubmenu(); }
+        [this]() { exitSubmenu(); }
     );
 }
 
 
 void MainMenuGraph::update() {
     TouchPoint touchPoint {tsManager->getTouch()};
-    if (!touchPoint.valid) return;
+    static uint8_t consecInvalid;
+    if (!touchPoint.valid) {
+        if (consecInvalid >= 1) return;
+        consecInvalid++;
+    } else {
+        consecInvalid = 0;
+    }
 
     if (isInSubmenu) {
-        armedHomeButton.checkCollision(touchPoint);
-        armedAwayButton.checkCollision(touchPoint);
-        backButton.checkCollision(touchPoint);
+        if (armedHomeButton.checkCollision(touchPoint)) return;
+        if (armedAwayButton.checkCollision(touchPoint)) return;
+        if (backButton.checkCollision(touchPoint)) return;
     } else {
         armDisarmButton.checkCollision(touchPoint);
     }
 }
-
-/*
-void MainMenuGraph::update() {
-    TouchPoint touchPoint {tsManager->getTouch()};
-    if (!touchPoint.valid) return;
-
-    if (isInSubmenu) {
-        if (armedHomeButton.containsPoint(touchPoint)) {
-            if (!armedHomeIsPressed) {
-                setAllButtonsFalse();
-                armedHomeIsPressed = true;
-                pushArmedHomeButton();
-            }
-            if (tsManager->isJustReleased()) {
-                setAllButtonsFalse();
-                // TODO: button press is confirmed - callback
-            }
-        } else if (armedAwayButton.containsPoint(touchPoint)) {
-            if (!armedAwayIsPressed) {
-                setAllButtonsFalse();
-                armedAwayIsPressed = true;
-                pushArmedAwayButton();
-            }
-            if (tsManager->isJustReleased()) {
-                setAllButtonsFalse();
-                // TODO: button press is confirmed - callback
-            }
-
-        } else if (backButton.containsPoint(touchPoint)) {
-            if (!backIsPressed) {
-                setAllButtonsFalse();
-                backIsPressed = true;
-                pushBackButton();
-            }
-            if (tsManager->isJustReleased()) {
-                setAllButtonsFalse();
-                isInSubmenu = false;
-                pushAll();
-            }
-        } else {        //pressing outside bounding boxes
-            if (armedHomeIsPressed) {
-                armedHomeIsPressed = false;
-                pushArmedHomeButton();
-            } else if (armedAwayIsPressed) {
-                armedAwayIsPressed = false;
-                pushArmedAwayButton();
-            } else if (backIsPressed) {
-                backIsPressed = false;
-                pushBackButton();
-            }
-        }
-    } else {            // is in main menu
-        if (armDisarmButton.containsPoint(touchPoint)) {
-            if (!armDisarmButtonIsPressed) {
-                armDisarmButtonIsPressed = true;
-                pushButton();
-            }
-            if (tsManager->isJustReleased()) {
-                armDisarmButtonIsPressed = false;
-                isInSubmenu = true;
-                pushAll();
-            }
-        } else {
-            if (armDisarmButtonIsPressed) {
-                armDisarmButtonIsPressed = false;
-                pushButton();
-            }
-        }
-    }
-}
-*/
 
 void MainMenuGraph::setAllButtonsFalse() {
     armDisarmButtonIsPressed = false;
@@ -414,25 +349,4 @@ void MainMenuGraph::exitSubmenu() {
     pushAll();
 }
 
-// void MainMenuGraph::pressMainButton(bool pressed) {
-//     armDisarmButtonIsPressed = pressed;
-//     pushButton();
-// }
-
-// void MainMenuGraph::pressSubmenuButton(int8_t button, bool pressed) {
-//     switch (button) {
-//         case 0:
-//             armedHomeIsPressed = pressed;
-//             break;
-//         case 1:
-//             armedAwayIsPressed = pressed;
-//             break;
-//         case 2:
-//             backIsPressed = pressed;
-//             break;
-//         default:
-//             break;
-//     }
-//     pushSubmenu();
-// }
 

@@ -11,18 +11,6 @@ uint16_t KeypadKey::charColor {};
 
 KeypadKey::KeypadKey(char ch, int16_t posX, int16_t posY) : ch{ch}, posX{posX}, posY{posY} {}
 
-// void KeypadKey::setup(int16_t w, int16_t h, int16_t cR, uint16_t bg, uint16_t bgSel, uint16_t chr, TFT_eSPI* tft) {
-//     KeypadKey::width = w;
-//     KeypadKey::height = h;
-//     KeypadKey::cornerRadius = cR;
-
-//     KeypadKey::bgColor = bg;
-//     KeypadKey::bgSelectColor = bgSel;
-//     KeypadKey::charColor = chr;
-
-//     KeypadKey::tft = tft;
-// }
-
 void KeypadKey::push() {
     tft->fillRoundRect(posX, posY, width, height, cornerRadius, selected ? bgSelectColor : bgColor);
 

@@ -9,7 +9,7 @@ AlarmState alarmState = disarmed;
 void setup() {
 
     Serial.begin(115200);
-    delay(5000);
+    delay(1000);
     Serial.println("================   SETUP   ================\n");
 
     Serial.printf("Flash: %d MB\n", ESP.getFlashChipSize() / (1024*1024));

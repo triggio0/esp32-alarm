@@ -132,6 +132,7 @@ void EyeSprite::drawEyelids(uint8_t aperturePercentage) {
 }
 
 void EyeSprite::updateBlink() {
+    needPush = true;
     if (!startBlink) {
         startBlink = millis();
     }
@@ -190,6 +191,7 @@ void EyeSprite::updateIrisPos() {
 
 void EyeSprite::updateIris() {
     if (currentIrisPos != targetIrisPosition) {
+        needPush = true;
         updateIrisPos();
         computePupilPosition();
     }
@@ -272,11 +274,13 @@ void EyeSprite::begin(DisplayManager* dM) {
 
     startTime = millis();
     displayManager = dM;
+    tft = displayManager->getTFT();
 
     calculateSpriteBounds();
     sumSprite = displayManager->createSprite(spriteWidth, spriteHeight);
 
     computePupilPosition();
+    update();
 }
 
 void EyeSprite::update() {
@@ -322,9 +326,17 @@ void EyeSprite::update() {
 //     computePupilPosition();
 // }
 
-void EyeSprite::push() const {
-    // Push directly to screen - no need to composite sprites
-    sumSprite->pushSprite(posX, posY + spriteOffsetY, TRANSPARENT_COLOR);
+void EyeSprite::push(bool forcePush) {
+    // sumSprite->pushSprite(posX, posY + spriteOffsetY);
+
+    if (!needPush && !forcePush) return;
+    needPush = false;
+
+    tft->startWrite();
+    tft->setAddrWindow(posX, posY + spriteOffsetY, spriteWidth, spriteHeight);
+    uint16_t* buffer = (uint16_t*)sumSprite->getPointer();
+    tft->pushPixels(buffer, spriteWidth * spriteHeight);
+    tft->endWrite();
 }
 
 EyeSprite::~EyeSprite() {

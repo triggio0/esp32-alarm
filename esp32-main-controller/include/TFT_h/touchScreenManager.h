@@ -32,12 +32,16 @@ private:
     bool hovering {false};
     std::function<void(bool hovering)> drawCallback;
     std::function<void()> selectionCallback;
+    static uint32_t cooldownEnd; 
 public:
     TouchButton() = default;
     TouchButton(TouchRect bounds, std::function<void(bool hovering)> drawCb, std::function<void()> selectionCb) :
         boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {}; 
 
     bool checkCollision(TouchPoint touchPoint) {
+        if (millis() < cooldownEnd) {
+            return false;
+        }
         if (boundingBox.containsPoint(touchPoint)) {
             if (!hovering) {
                 drawCallback(true);
@@ -47,10 +51,18 @@ public:
         } else {
             if (hovering) {
                 drawCallback(false);
+                if (!touchPoint.valid) {
+                    selectionCallback();
+                    cooldown();
+                }
             }
             hovering = false;
             return false;
         }
+    };
+
+    void cooldown(uint16_t cooldownMs=200) {
+        cooldownEnd = millis() + cooldownMs;
     }
 };
 
@@ -69,6 +81,8 @@ private:
     bool justReleased {false};
     bool wasTouched {false};
     TouchPoint lastTouch;
+
+    uint16_t calibrationData[5] = {325, 3331, 342, 3540, 2};    // {291, 3642, 273, 3480, 1}
     
 
 private:
