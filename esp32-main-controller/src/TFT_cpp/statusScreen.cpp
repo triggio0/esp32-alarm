@@ -84,9 +84,9 @@ void MainMenuGraph::pushArmDisarmButton() {
     tft->setTextColor(textColor);
     tft->setTextSize(textSize);
     tft->setTextFont(textFont);
-    int16_t w {tft->textWidth(actionNames.at(currentState))};
+    int16_t w {tft->textWidth(actionNames.at(System::alarmState))};
     tft->setCursor(posX + width/2 - w/2, posY + height - buttonNegY - buttonHeight/2 + (buttonHeight - textSize * 8) / 2);
-    tft->print(actionNames.at(currentState));
+    tft->print(actionNames.at(System::alarmState));
 }
 void MainMenuGraph::pushArmDisarmButton(bool hovering) {
     armDisarmButtonIsPressed = hovering;
@@ -105,8 +105,8 @@ void MainMenuGraph::pushHeader() {
     tft->setTextColor(textColor);
     tft->setTextSize(textSize);
     tft->setTextFont(textFont);
-    tft->setCursor(posX + width/2 - tft->textWidth(stateNames.at(currentState))/2, posY);
-    tft->print(stateNames.at(currentState));
+    tft->setCursor(posX + width/2 - tft->textWidth(stateNames.at(System::alarmState))/2, posY);
+    tft->print(stateNames.at(System::alarmState));
 }
 
 void MainMenuGraph::pushArmedHomeButton() {
@@ -181,11 +181,13 @@ void MainMenuGraph::pushBackButton(bool hovering) {
     pushBackButton();
 }
 
-void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
+void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::function<void()> startUnlockSequenceCallback) {
     if (!dM || !tsM) return;
     displayManager = dM;
     tsManager = tsM;
     tft = displayManager->getTFT();
+
+    startUnlockSequenceCb = startUnlockSequenceCallback;
 
     StatusEntry::tft = tft;
 
@@ -223,8 +225,10 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             pushArmDisarmButton(hovering);
         },
         [this]() {
-            if (alarmState == disarmed) enterSubmenu();
-            else if (alarmState == armedHome || alarmState == armedAway) {}         // TODO: add disarming sequence (insert unlock code)
+            if (System::alarmState == disarmed) enterSubmenu();
+            else if (System::alarmState == armedHome || System::alarmState == armedAway) {
+                startUnlockSequenceCb();
+            }
         }
     );
     // armedHomeButton
@@ -239,8 +243,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             pushArmedHomeButton(hovering);
         },
         [this]() {                                  // TODO: arm home callback
-            alarmState = armedHome;
-            setAlarmState(armedHome);
+            System::alarmState = armedHome;
             exitSubmenu();
         }
     );
@@ -257,8 +260,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             else this->pushArmedAwayButton(false);
         },
         [this]() {                                  // TODO: arm away callback
-            alarmState = armedAway;
-            setAlarmState(armedAway);
+            System::alarmState = armedAway;
             exitSubmenu();
         }
     );
@@ -283,16 +285,15 @@ void MainMenuGraph::update() {
     TouchPoint touchPoint {tsManager->getTouch()};
     static uint8_t consecInvalid;
     if (!touchPoint.valid) {
-        if (consecInvalid >= 1) return;
-        consecInvalid++;
+        if (++consecInvalid > 1) return;
     } else {
         consecInvalid = 0;
     }
 
     if (isInSubmenu) {
-        if (armedHomeButton.checkCollision(touchPoint)) return;
-        if (armedAwayButton.checkCollision(touchPoint)) return;
-        if (backButton.checkCollision(touchPoint)) return;
+        armedHomeButton.checkCollision(touchPoint);
+        armedAwayButton.checkCollision(touchPoint);
+        backButton.checkCollision(touchPoint);
     } else {
         armDisarmButton.checkCollision(touchPoint);
     }
@@ -313,12 +314,6 @@ void MainMenuGraph::setEntryBool(StatusScreenEntries entry, bool b) {
             break;
         }
     }
-}
-
-void MainMenuGraph::setAlarmState(AlarmState state) {
-    currentState = state;
-    pushHeader();
-    pushArmDisarmButton();
 }
 
 void MainMenuGraph::pushAll() {

@@ -1,10 +1,13 @@
-#include "toInclude.h"
+#include <Arduino.h>
+#include <WiFi.h>
 #include "utils.h"
+#include "globals.h"
 
 void maintainWiFiTask(void *param);
 void mainLoopTask(void *param);
 
-AlarmState alarmState = disarmed;
+AlarmState System::alarmState = disarmed;
+PowerState System::powerState = active;
 
 void setup() {
 

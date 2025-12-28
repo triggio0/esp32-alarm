@@ -1,5 +1,4 @@
 #include "TFT_h/keypad.h"
-#include "TFT_h/displayManager.h"
 
 TFT_eSPI* KeypadKey::tft {nullptr};
 int16_t KeypadKey::width {};
@@ -44,8 +43,7 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
         int16_t keyPosX = static_cast<int16_t>(posX + keySidePaddingX + (i % 3) * (keyWidth + 2 * keySidePaddingX));
         int16_t keyPosY = static_cast<int16_t>(posY + pinProgressHeight + keySidePaddingY + (i / 3) * (keyHeight + 2 * keySidePaddingY));
 
-        KeypadKey keypadKey {allChars[i], keyPosX, keyPosY};
-        keyArray[i] = keypadKey;
+        keyArray[i] = KeypadKey(allChars[i], keyPosX, keyPosY);
 
         TouchRect touchRect;
         touchRect.startX = keyPosX - keySidePaddingX;
@@ -53,15 +51,51 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
         touchRect.endX = keyPosX + keyWidth + keySidePaddingX;
         touchRect.endY = keyPosY + keyHeight + keySidePaddingY;
 
+
+        std::function<void()> selectionCb;
+
+        if (allChars[i] == 'C') {
+            selectionCb = [this, i]() {};
+        } else if (allChars[i] == '<') {
+            selectionCb = [this, i]() {
+                if (!bufferedNumbers) {
+
+                } else {
+                    for (int j {}; j < 6; j++) {
+                        if (pwBuffer[j] == '\0') {
+                            pwBuffer[j-1] = '\0';
+                            break;
+                        }
+                    }
+                    bufferedNumbers--;
+                    pushBufferedNumbersDisplay();
+                }
+            };
+        } else {
+            selectionCb = [this, i]() {
+                for (int j {}; j < 6; j++) {
+                    if (pwBuffer[j] == '\0') {
+                        pwBuffer[j] = keyArray[i].getChar();
+                        break;
+                    }
+                }
+                bufferedNumbers++;
+                pushBufferedNumbersDisplay();
+
+                if (bufferedNumbers == 6) {
+                    checkCodeBuffer();
+                }
+
+            };
+        }
+
         touchButtonArray[i] = TouchButton(
             touchRect,
-            [&keypadKey](bool selected) {
-                keypadKey.select(selected);
-                keypadKey.push();
+            [this, i](bool selected) {
+                keyArray[i].select(selected);
+                keyArray[i].push();
             },
-            [&keypadKey]() {
-                // TODO: button pressed callback (generic number)
-            }
+            selectionCb
         );
     }
     KeypadKey::width = keyWidth;
@@ -72,29 +106,26 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     KeypadKey::charColor = charColor;
     KeypadKey::tft = tft;
 
-    // TODO: add callback for < and C
-
     initialized = true;
 }
 
-void KeypadGraph::selectKey(char ch) {
-    for (int i {}; allChars[i] != '\0'; i++) {
-        if (allChars[i] == ch) {
-            keyArray[i].select(true);
-            keyArray[i].push();
-            break;
+void KeypadGraph::checkCodeBuffer() {
+    for (int i {}; i < 6; i++) {
+        if (pwBuffer[i] != alarmPassword[i]) {
+            bufferedNumbers = 0;
+            for (int j {}; j < 6; j++) {
+                pwBuffer[j] = '\0';
+            }
+            unlockSequenceState = codeFail;
+            return;
         }
     }
-}
-
-void KeypadGraph::deselectKey(char ch) {
-    for (int i {}; allChars[i] != '\0'; i++) {
-        if (allChars[i] == ch) {
-            keyArray[i].select(false);
-            keyArray[i].push();
-            break;
-        }
+    bufferedNumbers = 0;
+    for (int j {}; j < 6; j++) {
+        pwBuffer[j] = '\0';
     }
+    unlockSequenceState = codeSuccess;
+    Serial.println("correct code!");
 }
 
 void KeypadGraph::pushAll() {
@@ -108,8 +139,15 @@ void KeypadGraph::pushAll() {
 }
 
 void KeypadGraph::update() {
+    if (unlockSequenceState == none) return;
     TouchPoint touchPoint {tsManager->getTouch()};
-    if (!touchPoint.valid) return;
+
+    static uint8_t consecInvalid;
+    if (!touchPoint.valid) {
+        if (++consecInvalid > 1) return;
+    } else {
+        consecInvalid = 0;
+    }
 
     for (int i {}; i < 12; i++) {
         touchButtonArray[i].checkCollision(touchPoint);
@@ -132,18 +170,19 @@ void KeypadGraph::pushBufferedNumber(int16_t position, bool selected) {
     }
 }
 
-void KeypadGraph::setBufferedNumbers(int16_t numberOfBufferedNumbers) {
-    if (numberOfBufferedNumbers > 6) return;
-    if (previousSelectedNumbers == numberOfBufferedNumbers) return;
-    else if (previousSelectedNumbers > numberOfBufferedNumbers) {
-        for (int i {}; i < (previousSelectedNumbers - numberOfBufferedNumbers); i++) {
-            pushBufferedNumber(numberOfBufferedNumbers + i, false);
+void KeypadGraph::pushBufferedNumbersDisplay() {
+    if (bufferedNumbers > 6) return;
+    if (previousBufferedNumbers == bufferedNumbers) return;
+    else if (previousBufferedNumbers > bufferedNumbers) {
+        for (int i {}; i < (previousBufferedNumbers - bufferedNumbers); i++) {
+            pushBufferedNumber(bufferedNumbers + i, false);
         }
     }
-    else /* previousSelectedNumbers < numberOfBufferedNumbers */{
-        for (int i {}; i < (numberOfBufferedNumbers - previousSelectedNumbers); i++) {
-            pushBufferedNumber(previousSelectedNumbers + i, true);
+    else /* previousBufferedNumbers < bufferedNumbers */{
+        for (int i {}; i < (bufferedNumbers - previousBufferedNumbers); i++) {
+            pushBufferedNumber(previousBufferedNumbers + i, true);
         }
     }
-    previousSelectedNumbers = numberOfBufferedNumbers;
+    previousBufferedNumbers = bufferedNumbers;
 }
+

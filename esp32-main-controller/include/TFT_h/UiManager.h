@@ -6,7 +6,6 @@
 #include "eye.h"
 
 
-
 class UiManager {
 private:
 
@@ -15,6 +14,21 @@ private:
     KeypadGraph keypadGraph;
     EyeSprite eyeSprite;
     TouchScreenManager touchScreenManager;
+
+    bool disarmSequence {false};
+
+
+
+    void updateActive() {
+        eyeSprite.update();
+        eyeSprite.push();
+
+        if (!disarmSequence) mainMenuGraph.update();
+        else keypadGraph.update();
+
+
+    }
+
 
 
 
@@ -26,8 +40,8 @@ public:
         displayManager.fillColor(TFT_WHITE);
         touchScreenManager.begin(displayManager.getTFT());
         keypadGraph.begin(&displayManager, &touchScreenManager);
-        mainMenuGraph.begin(&displayManager, &touchScreenManager);
-        mainMenuGraph.setAlarmState(alarmState);
+        mainMenuGraph.begin(&displayManager, &touchScreenManager,
+            [this](){ keypadGraph.startUnlockSequence(); disarmSequence = true; });
         mainMenuGraph.pushAll();
         eyeSprite.begin(&displayManager);
         eyeSprite.push(true);
@@ -37,14 +51,10 @@ public:
 
     void update() {
 
-        eyeSprite.update();
-        eyeSprite.push();
-
-        
-
+        updateActive();
 
     }
 
-
+    TFT_eSPI* getTFT() { return displayManager.getTFT(); }
 
 };

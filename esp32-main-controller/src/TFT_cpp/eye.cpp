@@ -48,7 +48,7 @@ void EyeSprite::calculateSpriteBounds() {
 
 void EyeSprite::drawEyelids(uint8_t aperturePercentage) {
     float topAperture;
-    if (alarmState != disarmed) {
+    if (System::alarmState != disarmed) {
         topAperture = ((aperturePercentage * (topPMaxHeight - 0.05)) / 100);
     } else {
         topAperture = ((aperturePercentage * (topPMaxHeight - dozyMinuend)) / 100);
@@ -239,12 +239,12 @@ void EyeSprite::randomStateUpdate() {
     if ((elapsed % blinkInterval) < blinkClosingTime) {
         blinking = true;
     }
-    if ((alarmState==soundAlarm || alarmState==lockdown) && currentIrisPos==center) return;
+    if ((System::alarmState==soundAlarm || System::alarmState==lockdown) && currentIrisPos==center) return;
 
     if (!randIrisMoveWait) {
         startIrisMoveWait = elapsed;
 
-        if (alarmState==disarmed) randIrisMoveWait = random((6*1000), (15*1000));
+        if (System::alarmState==disarmed) randIrisMoveWait = random((6*1000), (15*1000));
         else randIrisMoveWait = random((4*1000), (8*1000));
         generateIrisPositionQueue();
     }

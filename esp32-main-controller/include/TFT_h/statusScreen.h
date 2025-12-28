@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
+#include "globals.h"
 #include "displayManager.h"
-#include "toInclude.h"
 #include "touchScreenManager.h"
 
 enum StatusScreenEntries {
@@ -81,7 +81,6 @@ private:
 
     static const std::unordered_map<AlarmState, const char*> stateNames;
     static const std::unordered_map<AlarmState, const char*> actionNames;
-    AlarmState currentState {armedAway};
     static constexpr int16_t buttonNegY {40};           // measured from the bottom (center of rect)
     static constexpr int16_t buttonHeight {55};
     static constexpr int16_t buttonWidth {150};
@@ -106,6 +105,7 @@ private:
     bool backIsPressed {false};
 
     bool isInSubmenu {false};
+    std::function<void()> startUnlockSequenceCb;
 
     void pushArmDisarmButton();
     void pushArmDisarmButton(bool hovering);
@@ -121,10 +121,9 @@ private:
     void exitSubmenu();
 
 public:
-    void begin(DisplayManager* dM, TouchScreenManager* tsM);
+    void begin(DisplayManager* dM, TouchScreenManager* tsM, std::function<void()> startUnlockSequenceCallback);
     void update();
     void setEntryBool(StatusScreenEntries entry, bool b);
-    void setAlarmState(AlarmState state);
     void pushAll();
     
 };

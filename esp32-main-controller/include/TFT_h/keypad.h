@@ -1,6 +1,8 @@
 #pragma once
 #include "displayManager.h"
 #include "touchScreenManager.h"
+#include "config/secret.h"
+#include "globals.h"
 
 class KeypadKey {
 public:
@@ -25,7 +27,8 @@ public:
     KeypadKey(char ch, int16_t posX, int16_t posY);
     // void setup(int16_t width, int16_t height, int16_t cornerRadius, uint16_t bgColor, uint16_t bgSelectColor, uint16_t charColor, TFT_eSPI* tft);
     void push();
-    void select (bool s);
+    void select(bool s);
+    char getChar() { return ch; }
 };
 
 
@@ -43,36 +46,44 @@ private:
 
     uint32_t startTime {};
 
-    static constexpr int16_t posX {5};
-    static constexpr int16_t posY {180};
-    static constexpr int16_t width {310};
-    static constexpr int16_t height {290};
-    static constexpr int16_t cornerRadius {3};
-    static constexpr int16_t keySidePaddingX {5};               // half of the space between keys
-    static constexpr int16_t keySidePaddingY {5};
-    static constexpr int16_t pinProgressHeight {40};
-    static constexpr int16_t pinProgressWidth {160};
-    static constexpr int16_t pinProgressCircleRadius {8};       // also used for width of rectangle
-    static constexpr int16_t pinProgressRectHeight {4};
+    static constexpr int16_t posX                           {5};
+    static constexpr int16_t posY                           {180};
+    static constexpr int16_t width                          {310};
+    static constexpr int16_t height                         {290};
+    static constexpr int16_t cornerRadius                   {3};
+    static constexpr int16_t keySidePaddingX                {5};                // half of the space between keys
+    static constexpr int16_t keySidePaddingY                {5};
+    static constexpr int16_t pinProgressHeight              {40};
+    static constexpr int16_t pinProgressWidth               {160};
+    static constexpr int16_t pinProgressCircleRadius        {8};                // also used for width of rectangle
+    static constexpr int16_t pinProgressRectHeight          {4};
 
-    static constexpr uint16_t keyBgColor {TFT_LIGHTGREY};
-    static constexpr uint16_t keyBgSelectColor {TFT_DARKGREY};
-    static constexpr uint16_t charColor {TFT_BLACK};
-    static constexpr uint16_t bgColor {TFT_WHITE};
+    static constexpr uint16_t keyBgColor                    {TFT_LIGHTGREY};
+    static constexpr uint16_t keyBgSelectColor              {TFT_DARKGREY};
+    static constexpr uint16_t charColor                     {TFT_BLACK};
+    static constexpr uint16_t bgColor                       {TFT_WHITE};
 
     const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '<', '\0'};
     KeypadKey keyArray[12];
     TouchButton touchButtonArray[12];
+    char pwBuffer[6] {};
+    Outcome unlockSequenceState {none};
 
-    int16_t previousSelectedNumbers {};
+    uint8_t bufferedNumbers;
+    uint8_t previousBufferedNumbers {};
 
     void pushBufferedNumber(int16_t position, bool selected);
-
+    void pushBufferedNumbersDisplay();
+    void checkCodeBuffer();
 public:
     void begin(DisplayManager* displayManager, TouchScreenManager* tsManager);
-    void selectKey(char ch);
-    void deselectKey(char ch);
     void pushAll();
     void update();
-    void setBufferedNumbers(int16_t numberOfBufferedNumbers);
+    
+    void startUnlockSequence() {
+        Serial.println("init unlock sequence");
+        unlockSequenceState = inProgress;
+        pushAll();
+    }
+    Outcome checkUnlockSequenceState() { return unlockSequenceState; };
 };

@@ -1,6 +1,6 @@
 #pragma once
-#include "toInclude.h"
 #include "displayManager.h"
+#include "globals.h"
 
 class EyeSprite {
     /*
@@ -18,7 +18,6 @@ private:
     // ===== General Stuff =====
     
     uint32_t startTime {};
-    AlarmState alarmState {disarmed};
     enum IrisPosition {left, center, right,};
     bool initialized {false};
     bool needPush {true};

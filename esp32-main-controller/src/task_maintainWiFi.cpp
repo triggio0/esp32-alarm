@@ -1,4 +1,4 @@
-#include "toInclude.h"
+#include <WiFi.h>
 #include "config/secret.h"
 
 void syncTime() {
