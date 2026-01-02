@@ -53,6 +53,11 @@ TouchPoint TouchScreenManager::getTouch() {
     return readRawTouch();
 }
 
+bool TouchScreenManager::touchDetected() {
+    uint16_t t_x = 0, t_y = 0;
+    return (tft->getTouch(&t_x, &t_y));
+}
+
 void TouchScreenManager::calibrateTouch() {
     if (!tft) return;
     

@@ -30,6 +30,7 @@ enum Outcome {
     inProgress,
     codeSuccess,
     codeFail,
+    codeAbort,
 };
 
 namespace System {

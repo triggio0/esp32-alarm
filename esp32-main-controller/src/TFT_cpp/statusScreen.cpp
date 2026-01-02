@@ -242,7 +242,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::func
         [this](bool hovering) {
             pushArmedHomeButton(hovering);
         },
-        [this]() {                                  // TODO: arm home callback
+        [this]() {
             System::alarmState = armedHome;
             exitSubmenu();
         }
@@ -259,7 +259,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::func
             if (hovering) this->pushArmedAwayButton(true);
             else this->pushArmedAwayButton(false);
         },
-        [this]() {                                  // TODO: arm away callback
+        [this]() {
             System::alarmState = armedAway;
             exitSubmenu();
         }

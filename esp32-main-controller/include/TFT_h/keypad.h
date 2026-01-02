@@ -62,6 +62,7 @@ private:
     static constexpr uint16_t keyBgSelectColor              {TFT_DARKGREY};
     static constexpr uint16_t charColor                     {TFT_BLACK};
     static constexpr uint16_t bgColor                       {TFT_WHITE};
+    static constexpr uint16_t charColorIncorrect            {TFT_RED};
 
     const char allChars[13] {'1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '<', '\0'};
     KeypadKey keyArray[12];
@@ -72,18 +73,23 @@ private:
     uint8_t bufferedNumbers;
     uint8_t previousBufferedNumbers {};
 
-    void pushBufferedNumber(int16_t position, bool selected);
+    void pushBufferedNumber(int16_t position, bool selected, bool incorrect=false);
     void pushBufferedNumbersDisplay();
     void checkCodeBuffer();
+    void pushIncorrectNumbersDisplay();
+    
 public:
     void begin(DisplayManager* displayManager, TouchScreenManager* tsManager);
     void pushAll();
     void update();
-    
     void startUnlockSequence() {
         Serial.println("init unlock sequence");
         unlockSequenceState = inProgress;
         pushAll();
     }
-    Outcome checkUnlockSequenceState() { return unlockSequenceState; };
+    Outcome getUnlockSequenceState() {
+        Outcome temp = unlockSequenceState;
+        unlockSequenceState = inProgress;
+        return temp;
+    };
 };

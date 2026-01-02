@@ -1,5 +1,6 @@
 #pragma once
 #include <TFT_eSPI.h>
+#include "utils.h"
 
 class DisplayManager {
     /*
@@ -22,4 +23,6 @@ public:
     void deleteSprite(TFT_eSprite* sprite);
     TFT_eSPI* getTFT();
     void setBacklight(int16_t brightnessPercentage);
+    void printFps(float fps);
+    void printFps();
 };

@@ -7,3 +7,11 @@ float getHeapUsedPercent() {
     size_t used = total - freeBytes;
     return (float)used * 100.0f / (float)total;
 }
+
+float getFpsCount() {
+    static uint32_t lastFrameTime = millis();
+    uint32_t now = millis();
+    float fps = 1000.0f / (now - lastFrameTime);
+    lastFrameTime = now;
+    return fps;
+}

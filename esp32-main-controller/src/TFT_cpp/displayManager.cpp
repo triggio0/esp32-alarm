@@ -48,3 +48,14 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
 TFT_eSPI* DisplayManager::getTFT() {
     return &tft;
 }
+
+void DisplayManager::printFps(float fps) {
+    tft.setTextColor(TFT_BLACK, TFT_WHITE);
+    tft.setCursor(2, 2);
+    tft.setTextSize(2);
+    tft.printf("%.1f", fps);
+}
+
+void DisplayManager::printFps() {
+    printFps(getFpsCount());
+}

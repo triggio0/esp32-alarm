@@ -116,6 +116,7 @@ void KeypadGraph::checkCodeBuffer() {
             for (int j {}; j < 6; j++) {
                 pwBuffer[j] = '\0';
             }
+            pushIncorrectNumbersDisplay();
             unlockSequenceState = codeFail;
             return;
         }
@@ -154,14 +155,14 @@ void KeypadGraph::update() {
     }
 }
 
-void KeypadGraph::pushBufferedNumber(int16_t position, bool selected) {
+void KeypadGraph::pushBufferedNumber(int16_t position, bool selected, bool incorrect) {
 
     int16_t posX {static_cast<int16_t>((KeypadGraph::posX + ((width - pinProgressWidth) / 2)) + position * (pinProgressWidth / 5))};
     static int16_t circleCenterY {KeypadGraph::posY + pinProgressHeight / 2};
     static int16_t rectTopLeftY {static_cast<int16_t>(circleCenterY - (pinProgressRectHeight / 2))};
 
     if (selected) {
-        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, charColor);
+        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, incorrect ? charColor : charColorIncorrect);
     }
     else {
         tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, bgColor);
@@ -184,5 +185,11 @@ void KeypadGraph::pushBufferedNumbersDisplay() {
         }
     }
     previousBufferedNumbers = bufferedNumbers;
+}
+
+void KeypadGraph::pushIncorrectNumbersDisplay() {
+    for(int i {}; i < 6; i++) {
+        pushBufferedNumber(i, false, true);
+    }
 }
 

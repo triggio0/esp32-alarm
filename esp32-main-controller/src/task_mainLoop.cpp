@@ -8,18 +8,8 @@ void mainLoopTask(void *param) {
 
     uiManager.begin();
 
-    uint32_t lastFrameTime = millis();
-
     while (true) {
-        uint32_t now = millis();
-        float fps = 1000.0f / (now - lastFrameTime);
-        lastFrameTime = now;
-
-        auto* tft = uiManager.getTFT();
-        tft->setTextColor(TFT_BLACK, TFT_WHITE);
-        tft->setCursor(2, 2);
-        tft->setTextSize(2);
-        tft->printf("%.1f", fps);
+        
 
         uiManager.update();
 
