@@ -20,18 +20,6 @@ void DisplayManager::setBacklight(int16_t brightnessPercentage) {
     ledcWrite(PinLayout::backlightChannel, dutyCycle);
 }
 
-void DisplayManager::fillColor(uint16_t color) {
-    tft.fillScreen(color);
-}
-
-int16_t DisplayManager::width() {
-    return tft.width();
-}
-
-int16_t DisplayManager::height() {
-    return tft.height();
-}
-
 TFT_eSprite* DisplayManager::createSprite(int16_t w, int16_t h) {
     TFT_eSprite* sprite = new TFT_eSprite(&tft);
     sprite->createSprite(w, h);
@@ -43,10 +31,6 @@ void DisplayManager::deleteSprite(TFT_eSprite* sprite) {
         sprite->deleteSprite();
         delete sprite;
     }
-}
-
-TFT_eSPI* DisplayManager::getTFT() {
-    return &tft;
 }
 
 void DisplayManager::printFps(float fps) {

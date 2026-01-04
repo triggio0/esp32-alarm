@@ -49,11 +49,6 @@ public:
 
 
 class MainMenuGraph {
-    /*
-    **  setup: begin()
-    **  loop: update()
-    **  holds the main menu UI and the submenu for arming/disarming the alarm
-    */
 private:
     DisplayManager* displayManager;
     TouchScreenManager* tsManager;

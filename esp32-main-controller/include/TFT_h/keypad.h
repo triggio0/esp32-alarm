@@ -33,10 +33,7 @@ public:
 
 
 class KeypadGraph {
-    /*
-    **  setup: begin()
-    **  loop: update()
-    */
+
 private:
     DisplayManager* displayManager;
     TouchScreenManager* tsManager;
@@ -83,7 +80,7 @@ public:
     void pushAll();
     void update();
     void startUnlockSequence() {
-        Serial.println("init unlock sequence");
+        Serial.println("starting unlock sequence");
         unlockSequenceState = inProgress;
         pushAll();
     }

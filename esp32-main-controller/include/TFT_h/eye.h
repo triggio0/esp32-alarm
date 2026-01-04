@@ -3,11 +3,6 @@
 #include "globals.h"
 
 class EyeSprite {
-    /*
-    **  setup: .begin()
-    **  loop: update(), push()
-    **  remember to update the state with setAlarmState()
-    */
 private:
 
     // ===== Sprites =====
@@ -26,17 +21,17 @@ private:
     static constexpr int16_t posX                       {40};               // wrt screen
     static constexpr int16_t posY                       {100};              // wrt screen
     static constexpr int16_t eyeWidth                   {240};              // determines bezier curve width
-    static constexpr float topPMaxHeight                {0.48};             // control point for bezier curve generation
-    static constexpr float bottomPMaxHeight             {0.41};             // control point for bezier curve generation
-    static constexpr float dozyMinuend                  {0.1};              // minimum 0.05
+    static constexpr float topPMaxHeight                {0.48f};            // control point for bezier curve generation
+    static constexpr float bottomPMaxHeight             {0.41f};            // control point for bezier curve generation
+    static constexpr float dozyMinuend                  {0.1f};             // minimum 0.05
     static constexpr uint8_t baseAperture               {90};
-    static constexpr float tIncrease                    {0.003};            // decrese to avoid zebra stripes on lids
+    static constexpr float tIncrease                    {0.003f};           // decrese to avoid zebra stripes on lids
     static constexpr uint16_t blinkClosingTime          {70};
     static constexpr uint16_t blinkOpeningTime          {130};
     static constexpr int16_t irisRadius                 {38};
-    static constexpr float irisPosYcLoweringCoeff       {0.03};             // makes iris lower ( * eyeWidth )
-    static constexpr float irisRLDistanceCoeff          {0.22};             // 0 ~ 0.5, how far to the side it can look
-    static constexpr float irisVelocity                 {0.5};
+    static constexpr float irisPosYcLoweringCoeff       {0.03f};            // makes iris lower ( * eyeWidth )
+    static constexpr float irisRLDistanceCoeff          {0.22f};            // 0 ~ 0.5, how far to the side it can look
+    static constexpr float irisVelocity                 {0.5f};
     static constexpr int16_t basePupilRadius            {20};
     static constexpr int16_t pupilDistanceFromCenter    {15};               // distance from iris center - will be scaled after
     static constexpr int16_t basePupilSourceHeight      {25};               // higher = looks further down

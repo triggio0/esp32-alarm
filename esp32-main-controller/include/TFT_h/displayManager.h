@@ -16,12 +16,12 @@ private:
 
 public:
     void begin();
-    void fillColor(uint16_t color = TFT_BLACK);
-    int16_t width();
-    int16_t height();
+    void fillColor(uint16_t color = TFT_BLACK) { tft.fillScreen(color); }
+    int16_t width() { return tft.width(); }
+    int16_t height() { return tft.height(); }
     TFT_eSprite* createSprite(int16_t w, int16_t h);
     void deleteSprite(TFT_eSprite* sprite);
-    TFT_eSPI* getTFT();
+    TFT_eSPI* getTFT() { return &tft; }
     void setBacklight(int16_t brightnessPercentage);
     void printFps(float fps);
     void printFps();

@@ -19,7 +19,7 @@ void setup() {
     Serial.printf("PSRAM: %d MB\n", ESP.getPsramSize() / (1024*1024));
     Serial.print("MAC Address: ");
     Serial.println(WiFi.macAddress());
-    Serial.printf("Used heap: %.1f %%\n", getHeapUsedPercent());
+    Serial.printf("Starting used heap: %.1f %%\n", getHeapUsedPercent());
     Serial.println("===========================================\n");
 
 
@@ -34,8 +34,6 @@ void setup() {
     //     0
     // );
 
-    delay(5);
-
     xTaskCreatePinnedToCore(
         mainLoopTask,
         "main loop",
@@ -45,6 +43,7 @@ void setup() {
         NULL,
         1
     );
+
 }
 
 void loop() {

@@ -36,7 +36,6 @@ private:
     
 public:
     static std::function<void()> powerStateTimeResetCb;
-
     TouchButton() = default;
     TouchButton(TouchRect bounds, std::function<void(bool hovering)> drawCb, std::function<void()> selectionCb) :
         boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {}; 
@@ -77,7 +76,7 @@ private:
     bool wasTouched {false};
     TouchPoint lastTouch;
 
-    uint16_t calibrationData[5] = {325, 3331, 342, 3540, 2};    // {291, 3642, 273, 3480, 1}
+    uint16_t calibrationData[5] = {325, 3331, 342, 3540, 2};
     
 
 private:

@@ -137,9 +137,7 @@ public:
             updateActive();
         }
 
-
         
-
     }
 
     TFT_eSPI* getTFT() { return displayManager.getTFT(); }

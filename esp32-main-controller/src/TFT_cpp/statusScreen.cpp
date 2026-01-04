@@ -215,7 +215,7 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::func
 
     // armDisarmButton
     TouchRect armDisarmButtonBounds;
-    armDisarmButtonBounds.startX = posX + width/2 - buttonWidth/2 - 5;  // -5/+5 added to make area easier to click
+    armDisarmButtonBounds.startX = posX + width/2 - buttonWidth/2 - 5;  // -5/+5 to make area easier to click
     armDisarmButtonBounds.startY = posY + height - buttonNegY - buttonHeight/2 - 5;
     armDisarmButtonBounds.endX = posX + width/2 + buttonWidth/2 + 5;
     armDisarmButtonBounds.endY = posY + height - buttonNegY + buttonHeight/2 + 5;
