@@ -52,12 +52,18 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
 
         if (allChars[i] == 'C') {
             selectionCb = [this, i]() {
-                                                // TODO
+                if (!bufferedNumbers) {
+                    setUnlockSequenceState(codeAbort);
+                } else {
+                    for (int j {}; j < 6; j++) pwBuffer[j] = '\0';
+                    bufferedNumbers = 0;
+                    pushBufferedNumbersDisplay();
+                }
             };
         } else if (allChars[i] == '<') {
             selectionCb = [this, i]() {
                 if (!bufferedNumbers) {
-                                                // TODO
+                    setUnlockSequenceState(codeAbort);
                 } else {
                     for (int j {}; j < 6; j++) {
                         if (pwBuffer[j] == '\0') {
