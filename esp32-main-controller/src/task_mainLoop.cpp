@@ -13,7 +13,7 @@ void mainLoopTask(void *param) {
     const TickType_t frameDelay = pdMS_TO_TICKS( static_cast<int>( 1000 / MAX_FRAMERATE ) );
     TickType_t lastWakeTime = xTaskGetTickCount();
 
-    Serial.printf("used heap: %i%%\n", getHeapUsedPercent());
+    Serial.printf("used heap: %.1f%%\n", getHeapUsedPercent());
 
     while (true) {
         uiManager.update();

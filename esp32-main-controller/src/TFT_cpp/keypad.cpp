@@ -28,8 +28,6 @@ void KeypadKey::select(bool s) {
 
 
 void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
-    if (initialized) return;
-
     if (!dM || !tsM) return;
     startTime = millis();
     displayManager = dM;
@@ -50,16 +48,16 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
         touchRect.startY = keyPosY - keySidePaddingY;
         touchRect.endX = keyPosX + keyWidth + keySidePaddingX;
         touchRect.endY = keyPosY + keyHeight + keySidePaddingY;
-
-
         std::function<void()> selectionCb;
 
         if (allChars[i] == 'C') {
-            selectionCb = [this, i]() {};
+            selectionCb = [this, i]() {
+                                                // TODO
+            };
         } else if (allChars[i] == '<') {
             selectionCb = [this, i]() {
                 if (!bufferedNumbers) {
-
+                                                // TODO
                 } else {
                     for (int j {}; j < 6; j++) {
                         if (pwBuffer[j] == '\0') {
@@ -81,14 +79,12 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
                 }
                 bufferedNumbers++;
                 pushBufferedNumbersDisplay();
-
                 if (bufferedNumbers == 6) {
                     checkCodeBuffer();
                 }
 
             };
         }
-
         touchButtonArray[i] = TouchButton(
             touchRect,
             [this, i](bool selected) {
@@ -105,8 +101,6 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     KeypadKey::bgSelectColor = keyBgSelectColor;
     KeypadKey::charColor = charColor;
     KeypadKey::tft = tft;
-
-    initialized = true;
 }
 
 void KeypadGraph::checkCodeBuffer() {
@@ -118,6 +112,7 @@ void KeypadGraph::checkCodeBuffer() {
             }
             pushIncorrectNumbersDisplay();
             unlockSequenceState = codeFail;
+            Serial.println("wrong code!");
             return;
         }
     }
@@ -149,7 +144,6 @@ void KeypadGraph::update() {
     } else {
         consecInvalid = 0;
     }
-
     for (int i {}; i < 12; i++) {
         touchButtonArray[i].checkCollision(touchPoint);
     }
@@ -162,7 +156,7 @@ void KeypadGraph::pushBufferedNumber(int16_t position, bool selected, bool incor
     static int16_t rectTopLeftY {static_cast<int16_t>(circleCenterY - (pinProgressRectHeight / 2))};
 
     if (selected) {
-        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, incorrect ? charColor : charColorIncorrect);
+        tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, incorrect ? charColorIncorrect : charColor);
     }
     else {
         tft->fillCircle(posX, circleCenterY, pinProgressCircleRadius, bgColor);
@@ -172,8 +166,15 @@ void KeypadGraph::pushBufferedNumber(int16_t position, bool selected, bool incor
 }
 
 void KeypadGraph::pushBufferedNumbersDisplay() {
+    Serial.printf("previous: %i | current: %i\n", previousBufferedNumbers, bufferedNumbers);
     if (bufferedNumbers > 6) return;
     if (previousBufferedNumbers == bufferedNumbers) return;
+    else if (previousBufferedNumbers == 6 && bufferedNumbers == 1) {    // case where wrong code was inserted
+        pushBufferedNumber(0, true);
+        for (int i {1}; i < 6; i++) {
+            pushBufferedNumber(i, false);
+        } 
+    }
     else if (previousBufferedNumbers > bufferedNumbers) {
         for (int i {}; i < (previousBufferedNumbers - bufferedNumbers); i++) {
             pushBufferedNumber(bufferedNumbers + i, false);
@@ -189,7 +190,7 @@ void KeypadGraph::pushBufferedNumbersDisplay() {
 
 void KeypadGraph::pushIncorrectNumbersDisplay() {
     for(int i {}; i < 6; i++) {
-        pushBufferedNumber(i, false, true);
+        pushBufferedNumber(i, true, true);
     }
 }
 

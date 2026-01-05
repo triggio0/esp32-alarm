@@ -25,7 +25,7 @@ enum PowerState {
     powerSaving,
 };
 
-enum Outcome {
+enum UnlockSequenceState {
     none,
     inProgress,
     codeSuccess,

@@ -39,8 +39,6 @@ private:
     TouchScreenManager* tsManager;
     TFT_eSPI* tft;
 
-    bool initialized = {false};
-
     uint32_t startTime {};
 
     static constexpr int16_t posX                           {5};
@@ -65,7 +63,7 @@ private:
     KeypadKey keyArray[12];
     TouchButton touchButtonArray[12];
     char pwBuffer[6] {};
-    Outcome unlockSequenceState {none};
+    UnlockSequenceState unlockSequenceState {none};
 
     uint8_t bufferedNumbers;
     uint8_t previousBufferedNumbers {};
@@ -79,14 +77,6 @@ public:
     void begin(DisplayManager* displayManager, TouchScreenManager* tsManager);
     void pushAll();
     void update();
-    void startUnlockSequence() {
-        Serial.println("starting unlock sequence");
-        unlockSequenceState = inProgress;
-        pushAll();
-    }
-    Outcome getUnlockSequenceState() {
-        Outcome temp = unlockSequenceState;
-        unlockSequenceState = inProgress;
-        return temp;
-    };
+    void setUnlockSequenceState(UnlockSequenceState state=inProgress) { unlockSequenceState = state; }
+    UnlockSequenceState getUnlockSequenceState() { return unlockSequenceState; }
 };

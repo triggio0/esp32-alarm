@@ -61,12 +61,17 @@ private:
                 currentCodeRetries = 0;
                 codeFailed();
             }
+            else {
+                keypadGraph.setUnlockSequenceState();
+                return;
+            }
         }
 
         pushAll();
     }
 
     void pushAll() {
+        displayManager.fillColor(TFT_WHITE);
         eyeSprite.push(true);
         if (disarmSequence) {
             keypadGraph.pushAll();
@@ -101,18 +106,17 @@ public:
         displayManager.begin();
         displayManager.fillColor(TFT_WHITE);
         touchScreenManager.begin(displayManager.getTFT());
-
-        keypadGraph.begin(&displayManager, &touchScreenManager);
-        TouchButton::powerStateTimeResetCb = [this]() {
+        TouchButton::setPowerStateTimeResetCb([this]() {
             startPowerStateTime = currentTime;
             if (powerState == idleDim || powerState == powerSaving)
             powerState = active;
             displayManager.setBacklight(100);
-        };
-
+        });
+        keypadGraph.begin(&displayManager, &touchScreenManager);
         mainMenuGraph.begin(&displayManager, &touchScreenManager,
             [this]() {
-                keypadGraph.startUnlockSequence();
+                keypadGraph.setUnlockSequenceState();
+                keypadGraph.pushAll();
                 disarmSequence = true;
                 disarmSequenceStart = millis();
             });

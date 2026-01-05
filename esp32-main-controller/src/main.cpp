@@ -6,7 +6,7 @@
 void maintainWiFiTask(void *param);
 void mainLoopTask(void *param);
 
-AlarmState System::alarmState = disarmed;
+AlarmState System::alarmState = armedHome;
 PowerState System::powerState = active;
 
 void setup() {
@@ -19,7 +19,7 @@ void setup() {
     Serial.printf("PSRAM: %d MB\n", ESP.getPsramSize() / (1024*1024));
     Serial.print("MAC Address: ");
     Serial.println(WiFi.macAddress());
-    Serial.printf("Starting used heap: %.1f %%\n", getHeapUsedPercent());
+    Serial.printf("Starting used heap: %.1f%%\n", getHeapUsedPercent());
     Serial.println("===========================================\n");
 
 

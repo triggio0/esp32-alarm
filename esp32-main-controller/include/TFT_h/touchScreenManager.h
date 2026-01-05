@@ -33,13 +33,16 @@ private:
     std::function<void(bool hovering)> drawCallback;
     std::function<void()> selectionCallback;
     static uint32_t cooldownEnd;
+    static std::function<void()> powerStateTimeResetCb;
     
 public:
-    static std::function<void()> powerStateTimeResetCb;
+    
     TouchButton() = default;
     TouchButton(TouchRect bounds, std::function<void(bool hovering)> drawCb, std::function<void()> selectionCb) :
         boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {}; 
-
+    static void setPowerStateTimeResetCb(std::function<void()> callback) {
+        powerStateTimeResetCb = callback;
+    }
     bool checkCollision(TouchPoint touchPoint) {
         powerStateTimeResetCb();                        // TODO: check efficiency
         if (millis() < cooldownEnd) {
@@ -64,7 +67,7 @@ public:
         }
     };
 
-    void cooldown(uint16_t cooldownMs=200) {
+    void cooldown(uint16_t cooldownMs=100) {
         cooldownEnd = millis() + cooldownMs;
     }
 };

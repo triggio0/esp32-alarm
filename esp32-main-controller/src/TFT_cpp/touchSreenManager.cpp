@@ -1,6 +1,7 @@
 #include "TFT_h/touchScreenManager.h"
 
-uint32_t TouchButton::cooldownEnd; 
+uint32_t TouchButton::cooldownEnd;
+std::function<void()> TouchButton::powerStateTimeResetCb = nullptr;
 
 TouchPoint TouchScreenManager::readRawTouch() {
     uint16_t t_x = 0, t_y = 0;
