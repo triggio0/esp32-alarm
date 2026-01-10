@@ -44,7 +44,7 @@ public:
         powerStateTimeResetCb = callback;
     }
     bool checkCollision(TouchPoint touchPoint) {
-        powerStateTimeResetCb();                        // TODO: check efficiency
+        powerStateTimeResetCb();
         if (millis() < cooldownEnd) {
             return false;
         }

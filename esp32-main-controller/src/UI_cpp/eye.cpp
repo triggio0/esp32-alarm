@@ -1,5 +1,5 @@
-#include "TFT_h/eye.h"
-#include "TFT_h/displayManager.h"
+#include "UI_headers/eye.h"
+#include "UI_headers/displayManager.h"
 
 void EyeSprite::calculateSpriteBounds() {
     // Calculate actual min/max Y by iterating through the bezier curves

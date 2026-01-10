@@ -1,5 +1,5 @@
-#include "TFT_h/statusScreen.h"
-#include "TFT_h/displayManager.h"
+#include "UI_headers/statusScreen.h"
+#include "UI_headers/displayManager.h"
 
 // const std::unordered_map<StatusScreenEntries, const char*> entryNames {
 //     {front_door, "Front door:"},

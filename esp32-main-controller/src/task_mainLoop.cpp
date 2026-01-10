@@ -15,8 +15,17 @@ void mainLoopTask(void *param) {
 
     Serial.printf("used heap: %.1f%%\n", getHeapUsedPercent());
 
+    int count {0};
     while (true) {
         uiManager.update();
-        vTaskDelayUntil(&lastWakeTime, frameDelay);
+        // vTaskDelayUntil(&lastWakeTime, frameDelay);
+
+        count++;
+        if (count == 15) {
+            Serial.printf("- %.0f\n", getFpsCount());
+            count = 0;
+        } else {
+            getFpsCount();
+        }
     }
 }
