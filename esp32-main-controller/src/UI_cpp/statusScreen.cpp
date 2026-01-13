@@ -37,6 +37,7 @@ void StatusEntry::pushRightSide() {
 
     tft->setTextSize(textSize);
     tft->setTextFont(textFont);
+    tft->fillRect(firstLinePosX + lineWidth - 100, firstLinePosY + lineHeight * line, 100, lineHeight, bgColor);
     if (value) {
         tft->setTextColor(trueColor);
         int16_t w {tft->textWidth(displayedValueTrue)};
@@ -52,7 +53,10 @@ void StatusEntry::pushRightSide() {
 }
 
 void StatusEntry::setValue(bool b) {
-    value = b;
+    if (b != value) {
+        value = b;
+        pushRightSide();
+    }
 }
 
 void StatusEntry::push() {
@@ -181,6 +185,22 @@ void MainMenuGraph::pushBackButton(bool hovering) {
     pushBackButton();
 }
 
+void MainMenuGraph::updateValues() {
+    for (StatusEntry& entry : entries) {
+        switch (entry.getEntryID()) {
+        case front_door:
+            entry.setValue(System::doorOpen);
+            break;
+        case wifi:
+            entry.setValue(System::isOnline);
+            break;
+        default:
+            break;
+
+        }
+    }
+}
+
 void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::function<void()> startUnlockSequenceCallback) {
     if (!dM || !tsM) return;
     displayManager = dM;
@@ -282,6 +302,8 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::func
 
 
 void MainMenuGraph::update() {
+    updateValues();
+
     TouchPoint touchPoint {tsManager->getTouch()};
     static uint8_t consecInvalid;
     if (!touchPoint.valid) {
@@ -297,6 +319,7 @@ void MainMenuGraph::update() {
     } else {
         armDisarmButton.checkCollision(touchPoint);
     }
+    
 }
 
 void MainMenuGraph::setAllButtonsFalse() {

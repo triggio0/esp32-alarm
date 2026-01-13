@@ -23,7 +23,7 @@ private:
     static constexpr int16_t eyeWidth                   {240};              // determines bezier curve width
     static constexpr float topPMaxHeight                {0.48f};            // control point for bezier curve generation
     static constexpr float bottomPMaxHeight             {0.41f};            // control point for bezier curve generation
-    static constexpr float dozyMinuend                  {0.1f};             // minimum 0.05
+    static constexpr float dozyMinuend                  {0.15f};             // minimum 0.05
     static constexpr uint8_t baseAperture               {90};
     static constexpr float tIncrease                    {0.003f};           // decrese to avoid zebra stripes on lids
     static constexpr uint16_t blinkClosingTime          {70};

@@ -12,7 +12,7 @@ namespace PinLayout {
     // constexpr uint8_t kpCol2 {20};
     // constexpr uint8_t kpCol3 {21};
 
-    constexpr int16_t reedDoor {8};
+    constexpr int16_t reedDoor {16};
 
     constexpr int16_t buzzer {15};
     constexpr int16_t buzzerChannel {0};

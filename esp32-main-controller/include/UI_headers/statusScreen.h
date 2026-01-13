@@ -41,7 +41,7 @@ public:
     StatusEntry() : entryID(), line(0), displayedEntry{0}, displayedValueTrue{0}, displayedValueFalse{0}, value(false) {}
     StatusEntry(StatusScreenEntries id, int16_t lineNumber, const char* entryName,
         const char* valueTrue, const char* valueFalse);
-    StatusScreenEntries getEntryID() const {return entryID;}
+    StatusScreenEntries getEntryID() const { return entryID; }
     void setValue(bool b);
     void push();
 };
@@ -114,6 +114,7 @@ private:
     void setAllButtonsFalse();
     void enterSubmenu();
     void exitSubmenu();
+    void updateValues();
 
 public:
     void begin(DisplayManager* dM, TouchScreenManager* tsM, std::function<void()> startUnlockSequenceCallback);
