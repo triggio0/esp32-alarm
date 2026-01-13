@@ -53,82 +53,53 @@ void EyeSprite::drawEyelids(uint8_t aperturePercentage) {
     } else {
         topAperture = ((aperturePercentage * (topPMaxHeight - dozyMinuend)) / 100);
     }
-    float bottomAperture {((aperturePercentage * bottomPMaxHeight) / 100)};
+    float bottomAperture = ((aperturePercentage * bottomPMaxHeight) / 100);
     
-    const int maxPoints = static_cast<int>(1.0 / tIncrease) + 1;
-    {
-        float outerDist = -topPMaxHeight * eyeWidth;
-        float innerDist = -topAperture * eyeWidth;
-        
+    // Helper lambda to draw eyelid curve
+    auto drawEyelidCurve = [this](float innerDist, float outerDist) {
         int16_t x1_outer = halfWidth - p2p3Offset;
         int16_t y1_outer = baselineY + outerDist;
         int16_t x2_outer = halfWidth + p2p3Offset;
-        int16_t y2_outer = y1_outer;
         
         int16_t x1_inner = halfWidth - p2p3Offset;
         int16_t y1_inner = baselineY + innerDist;
         int16_t x2_inner = halfWidth + p2p3Offset;
-        int16_t y2_inner = y1_inner;
-        
-        float prev_xt_outer = 0;
-        float prev_yt_outer = baselineY;
-        float prev_xt_inner = 0;
-        float prev_yt_inner = baselineY;
         
         for (float t = 0.0; t <= 1.0; t += tIncrease) {
+            float oneMinusT = 1 - t;
+            float oneMinusTSquared = oneMinusT * oneMinusT;
+            float oneMinusTCubed = oneMinusTSquared * oneMinusT;
+            float tSquared = t * t;
+            float tCubed = tSquared * t;
+            
             // Outer curve point
-            float xt_outer = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_outer + 
-                            3 * (1 - t) * t * t * x2_outer + t * t * t * spriteWidth;
-            float yt_outer = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_outer + 
-                            3 * (1 - t) * t * t * y2_outer + t * t * t * baselineY;
+            float xt_outer = oneMinusTCubed * 0 + 
+                           3 * oneMinusTSquared * t * x1_outer + 
+                           3 * oneMinusT * tSquared * x2_outer + 
+                           tCubed * spriteWidth;
+            float yt_outer = oneMinusTCubed * baselineY + 
+                           3 * oneMinusTSquared * t * y1_outer + 
+                           3 * oneMinusT * tSquared * y1_outer + 
+                           tCubed * baselineY;
             
             // Inner curve point
-            float xt_inner = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_inner + 
-                            3 * (1 - t) * t * t * x2_inner + t * t * t * spriteWidth;
-            float yt_inner = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_inner + 
-                            3 * (1 - t) * t * t * y2_inner + t * t * t * baselineY;
+            float xt_inner = oneMinusTCubed * 0 + 
+                           3 * oneMinusTSquared * t * x1_inner + 
+                           3 * oneMinusT * tSquared * x2_inner + 
+                           tCubed * spriteWidth;
+            float yt_inner = oneMinusTCubed * baselineY + 
+                           3 * oneMinusTSquared * t * y1_inner + 
+                           3 * oneMinusT * tSquared * y1_inner + 
+                           tCubed * baselineY;
             
             sumSprite->drawLine(static_cast<int16_t>(xt_outer), static_cast<int16_t>(yt_outer), 
-                              static_cast<int16_t>(xt_inner), static_cast<int16_t>(yt_inner), lidColor);
-            
-            prev_xt_outer = xt_outer;
-            prev_yt_outer = yt_outer;
-            prev_xt_inner = xt_inner;
-            prev_yt_inner = yt_inner;
+                              static_cast<int16_t>(xt_inner), static_cast<int16_t>(yt_inner), 
+                              lidColor);
         }
-    }
+    };
     
-    {
-        float innerDist = bottomAperture * eyeWidth;
-        float outerDist = bottomPMaxHeight * eyeWidth;
-        
-        int16_t x1_inner = halfWidth - p2p3Offset;
-        int16_t y1_inner = baselineY + innerDist;
-        int16_t x2_inner = halfWidth + p2p3Offset;
-        int16_t y2_inner = y1_inner;
-        
-        int16_t x1_outer = halfWidth - p2p3Offset;
-        int16_t y1_outer = baselineY + outerDist;
-        int16_t x2_outer = halfWidth + p2p3Offset;
-        int16_t y2_outer = y1_outer;
-        
-        for (float t = 0.0; t <= 1.0; t += tIncrease) {
-            // Inner curve point
-            float xt_inner = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_inner + 
-                            3 * (1 - t) * t * t * x2_inner + t * t * t * spriteWidth;
-            float yt_inner = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_inner + 
-                            3 * (1 - t) * t * t * y2_inner + t * t * t * baselineY;
-            
-            // Outer curve point
-            float xt_outer = (1 - t) * (1 - t) * (1 - t) * 0 + 3 * (1 - t) * (1 - t) * t * x1_outer + 
-                            3 * (1 - t) * t * t * x2_outer + t * t * t * spriteWidth;
-            float yt_outer = (1 - t) * (1 - t) * (1 - t) * baselineY + 3 * (1 - t) * (1 - t) * t * y1_outer + 
-                            3 * (1 - t) * t * t * y2_outer + t * t * t * baselineY;
-            
-            sumSprite->drawLine(static_cast<int16_t>(xt_inner), static_cast<int16_t>(yt_inner), 
-                              static_cast<int16_t>(xt_outer), static_cast<int16_t>(yt_outer), lidColor);
-        }
-    }
+    drawEyelidCurve(-topAperture * eyeWidth, -topPMaxHeight * eyeWidth);
+    drawEyelidCurve(bottomAperture * eyeWidth, bottomPMaxHeight * eyeWidth);
 }
 
 void EyeSprite::updateBlink() {

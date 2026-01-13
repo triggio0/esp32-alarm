@@ -3,8 +3,8 @@
 
 #define alarmPassword "123456"
 
-#define WiFiSsid "WiFi di Tommaso"
-#define WiFiPassword "Vindic4_te_t1bi"
+#define WiFiSsid "SERVICE"
+#define WiFiPassword ""
 
 #define BOTtoken "8516325289:AAGrlGIyBTfkXyRLtKjyJr2FK6Gw8LQqTLU"       // from botfather
 #define CHAT_ID "1058848847"                                            // from IDBot

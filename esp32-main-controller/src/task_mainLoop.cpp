@@ -13,7 +13,7 @@ void mainLoopTask(void *param) {
     uiManager.begin();
     tgBot = TelegramBot();
     uiManager.setFpsOptimizationCb(
-        []() { tgBot.setOff(); Serial.println("efficient!"); },
+        []() { tgBot.setOff(); },
         []() { tgBot.setOn(); }
     );
 

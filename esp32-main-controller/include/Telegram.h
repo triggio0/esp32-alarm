@@ -39,11 +39,13 @@ private:
                                 "";
                 bot->sendMessage(chat_id, msg, "");
             } else if (text == "/report") {
-                uint32_t totalHours = (millis() - System::startUptime) / 1000 / 60 / 60;
-                uint16_t days = totalHours / 24;
-                uint16_t hours = totalHours % 24;
+                uint32_t totalMinutes = (millis() - System::startUptime) / 1000 / 60;
+                uint16_t days    = totalMinutes / (24 * 60);
+                uint16_t hours   = (totalMinutes % (24 * 60)) / 60;
+                uint16_t minutes = totalMinutes % 60;
+
                 String msg =    "=============== report ===============\n"
-                                "Uptime:" + String(days) + "d, " + String(hours) + "h\n"
+                                "Uptime: " + String(days) + "d, " + String(hours) + "h, " + String(minutes) + "m\n"
                                 "Window sensor: \n"
                                 "Camera: \n";
                 bot->sendMessage(chat_id, msg, "");

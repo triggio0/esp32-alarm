@@ -43,7 +43,8 @@ public:
     void begin();
     void update();
     void setFpsOptimizationCb(std::function<void()> startOptimization, std::function<void()> endOptimization) {
-
+        UiManager::startOptimization = startOptimization;
+        UiManager::endOptimization = endOptimization;
     }
     TFT_eSPI* getTFT() { return displayManager.getTFT(); }
 
