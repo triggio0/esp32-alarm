@@ -17,8 +17,11 @@ private:
     uint32_t currentTime {};
     bool needFullPush {true};
 
-    static constexpr uint16_t idleDimTimeout {30 * 1000};
-    static constexpr uint16_t powerSavingTimeout {60 * 1000};
+    std::function<void()> startOptimization;
+    std::function<void()> endOptimization;
+
+    static constexpr uint32_t idleDimTimeout {60 * 1000};
+    static constexpr uint32_t powerSavingTimeout {80 * 1000};
     PowerState powerState {active};
     uint32_t startPowerStateTime {};
 
@@ -33,10 +36,15 @@ private:
     void pushAll();
     void updateActive();
     void updateLowPowerMode();
+    void startDisarmSequence();
+    void endDisarmSequence();
 
 public:
     void begin();
     void update();
+    void setFpsOptimizationCb(std::function<void()> startOptimization, std::function<void()> endOptimization) {
+
+    }
     TFT_eSPI* getTFT() { return displayManager.getTFT(); }
 
 };

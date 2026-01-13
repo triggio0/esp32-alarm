@@ -8,7 +8,7 @@ void UiManager::codeFailed() {                                   // TODO
         }
     }
 
-void UiManager::disarmSequenceUpdate() {
+void UiManager::disarmSequenceUpdate() {                        // TODO: auto exit (blocks telegram)
 
     if (disarmSequenceStart + disarmSequenceDuration >= millis()) {
         codeFailed();
@@ -17,12 +17,12 @@ void UiManager::disarmSequenceUpdate() {
     if (keypadGraph.getUnlockSequenceState() == inProgress) {
         return;
     } else if (keypadGraph.getUnlockSequenceState() == codeSuccess) {
-        disarmSequence = false;
+        endDisarmSequence();
         if (System::alarmState == armedAway || System::alarmState == armedHome) {
             System::alarmState = disarmed;
         }
     } else if (keypadGraph.getUnlockSequenceState() == codeAbort) {
-        disarmSequence = false;
+        endDisarmSequence();
     } else if (keypadGraph.getUnlockSequenceState() == codeFail) {
         currentCodeRetries++;
         if (currentCodeRetries > maxCodeRetries) {
@@ -65,6 +65,16 @@ void UiManager::updateLowPowerMode() {
     }
 }
 
+void UiManager::startDisarmSequence() {
+    disarmSequence = true;
+    if (startOptimization) startOptimization();
+}
+
+void UiManager::endDisarmSequence() {
+    disarmSequence = false;
+    if (endOptimization) endOptimization();
+}
+
 void UiManager::begin() {
     displayManager.begin();
     displayManager.fillColor(TFT_WHITE);
@@ -80,7 +90,7 @@ void UiManager::begin() {
         [this]() {
             keypadGraph.setUnlockSequenceState();
             keypadGraph.pushAll();
-            disarmSequence = true;
+            startDisarmSequence();
             disarmSequenceStart = millis();
         });
     eyeSprite.begin(&displayManager);

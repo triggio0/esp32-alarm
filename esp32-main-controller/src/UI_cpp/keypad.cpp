@@ -172,7 +172,6 @@ void KeypadGraph::pushBufferedNumber(int16_t position, bool selected, bool incor
 }
 
 void KeypadGraph::pushBufferedNumbersDisplay() {
-    Serial.printf("previous: %i | current: %i\n", previousBufferedNumbers, bufferedNumbers);
     if (bufferedNumbers > 6) return;
     if (previousBufferedNumbers == bufferedNumbers) return;
     else if (previousBufferedNumbers == 6 && bufferedNumbers == 1) {    // case where wrong code was inserted

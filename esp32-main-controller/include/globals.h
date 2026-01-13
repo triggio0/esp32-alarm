@@ -36,4 +36,6 @@ enum UnlockSequenceState {
 namespace System {
     extern AlarmState alarmState;
     extern PowerState powerState;
+    extern bool isOnline;
+    extern uint32_t startUptime;
 }

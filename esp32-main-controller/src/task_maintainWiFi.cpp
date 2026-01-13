@@ -1,10 +1,11 @@
 #include <WiFi.h>
 #include "config/secret.h"
+#include "globals.h"
 
 void syncTime() {
     struct tm timeinfo;
     int retry {0};
-    const int maxRetries {5};
+    const int maxRetries {20};
     Serial.println("|  maintainWiFiTask  |> Attempting to sync time... ");
     while (!getLocalTime(&timeinfo) && retry < maxRetries) {
         delay(1000);
@@ -19,6 +20,16 @@ void syncTime() {
     }
 }
 
+bool attemptConnection() {
+    WiFi.disconnect();
+    WiFi.begin(WiFiSsid, WiFiPassword);
+    unsigned long startAttempt {millis()};
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 5*1000) {
+        delay(500);
+    }
+    return (WiFi.status() == WL_CONNECTED);
+}
+
 void maintainWiFiTask(void *param) {
     Serial.println("|  maintainWiFiTask  |> Task created ");
 
@@ -27,17 +38,14 @@ void maintainWiFiTask(void *param) {
     
     Serial.println("|  maintainWiFiTask  |> Connecting to WiFi...");
     WiFi.mode(WIFI_STA);
-    WiFi.begin(WiFiSsid, WiFiPassword);
+
+    bool connected {attemptConnection()};
     
-    unsigned long startAttempt {millis()};
-    while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 30000) {
-        delay(500);
-    }
-    
-    if (WiFi.status() == WL_CONNECTED) {
+    if (connected) {
         Serial.println("|  maintainWiFiTask  |> WiFi connected!");
         Serial.print("|  maintainWiFiTask  |> IP: ");
         Serial.println(WiFi.localIP());
+        System::isOnline = true;
     } else {
         Serial.println("\n|  maintainWiFiTask  |> Initial connection failed, will retry...");
     }
@@ -49,24 +57,29 @@ void maintainWiFiTask(void *param) {
     unsigned long lastSyncAttempt {0};
     
     while (true) {
+        uint32_t now = millis();
         if (WiFi.status() != WL_CONNECTED) {
-            
-            if (millis() - lastReconnectAttempt >= reconnectInterval) {
-                Serial.println("|  maintainWiFiTask  |> Attempting to reconnect...");
-                WiFi.disconnect();
-                WiFi.begin(WiFiSsid, WiFiPassword);
-                lastReconnectAttempt = millis();
+            System::isOnline = false;
+            if (now - lastReconnectAttempt >= reconnectInterval) {
+                Serial.print("|  maintainWiFiTask  |> Attempting to reconnect...");
+                if (attemptConnection()) {
+                    System::isOnline = true;
+                    Serial.println(" Success!");
+                } else {
+                    Serial.println(" Fail!");
+                }
+                lastReconnectAttempt = now;
             }
         } else {
-            static unsigned long lastPrint {0};
-            if (millis() - lastPrint >= 600000) {
+            static unsigned long lastPrint {};
+            if (now - lastPrint >= 10*60*1000) {
                 Serial.print("|  maintainWiFiTask  |> WiFi still connected, RSSI: ");
                 Serial.println(WiFi.RSSI());
-                lastPrint = millis();
+                lastPrint = now;
 
-            if (millis() - lastSyncAttempt >= syncTimeInterval) {
+            if (now - lastSyncAttempt >= syncTimeInterval) {
                 syncTime();
-                lastSyncAttempt = millis();
+                lastSyncAttempt = now;
             }
             }
             
