@@ -1,17 +1,17 @@
 #include "Ui_headers/UiManager.h"
 
-void UiManager::codeFailed() {                                   // TODO
-        if (System::alarmState == armedAway) {
+// void UiManager::codeFailed() {                                   // TODO
+//         if (System::alarmState == armedAway) {
 
-        } else if (System::alarmState == armedHome) {
+//         } else if (System::alarmState == armedHome) {
 
-        }
-    }
+//         }
+//     }
 
 void UiManager::disarmSequenceUpdate() {                        // TODO: auto exit (blocks telegram)
 
     if (disarmSequenceStart + disarmSequenceDuration >= millis()) {
-        codeFailed();
+        alarmTrigger();
     }
     keypadGraph.update();
     if (keypadGraph.getUnlockSequenceState() == inProgress) {
@@ -27,7 +27,7 @@ void UiManager::disarmSequenceUpdate() {                        // TODO: auto ex
         currentCodeRetries++;
         if (currentCodeRetries > maxCodeRetries) {
             currentCodeRetries = 0;
-            codeFailed();
+            alarmTrigger();
         }
         else {
             keypadGraph.setUnlockSequenceState();
@@ -62,6 +62,7 @@ void UiManager::updateLowPowerMode() {
     if(touchScreenManager.touchDetected()) {
         powerState = active;
         displayManager.setBacklight(100);
+        startPowerStateTime = currentTime;
     }
 }
 
@@ -79,20 +80,19 @@ void UiManager::begin() {
     displayManager.begin();
     displayManager.fillColor(TFT_WHITE);
     touchScreenManager.begin(displayManager.getTFT());
+
     TouchButton::setPowerStateTimeResetCb([this]() {
         startPowerStateTime = currentTime;
-        if (powerState == idleDim || powerState == powerSaving)
-        powerState = active;
-        displayManager.setBacklight(100);
     });
+
     keypadGraph.begin(&displayManager, &touchScreenManager);
-    mainMenuGraph.begin(&displayManager, &touchScreenManager,
-        [this]() {
-            keypadGraph.setUnlockSequenceState();
-            keypadGraph.pushAll();
-            startDisarmSequence();
-            disarmSequenceStart = millis();
-        });
+    mainMenuGraph.begin(&displayManager, &touchScreenManager, [this]() {
+        keypadGraph.setUnlockSequenceState();
+        keypadGraph.pushAll();
+        startDisarmSequence();
+        disarmSequenceStart = millis();
+    });
+    
     eyeSprite.begin(&displayManager);
     pushAll();
 
@@ -105,9 +105,11 @@ void UiManager::update() {
 
     if (currentTime > startPowerStateTime + powerSavingTimeout) {
         if (powerState != powerSaving) displayManager.setBacklight(0);
+        powerState = powerSaving;
         updateLowPowerMode();
     } else if (currentTime > startPowerStateTime + idleDimTimeout) {
         if (powerState != idleDim) displayManager.setBacklight(40);
+        powerState = idleDim;
         updateLowPowerMode();
     } else {
         updateActive();

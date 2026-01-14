@@ -9,7 +9,7 @@ class DisplayManager {
 private:
     TFT_eSPI tft = TFT_eSPI();
     bool initialized {false};
-    static constexpr int8_t screenRotation {2};     //pins at the top
+    static constexpr int8_t screenRotation {0};     //pins at the top
 
     static constexpr int16_t pwmFreq {5000};
     static constexpr int16_t pwmResolution {8};

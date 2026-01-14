@@ -4,6 +4,7 @@
 #include "statusScreen.h"
 #include "keypad.h"
 #include "eye.h"
+#include "buzzerManager.h"
 
 
 class UiManager {
@@ -13,15 +14,17 @@ private:
     KeypadGraph keypadGraph;
     EyeSprite eyeSprite;
     TouchScreenManager touchScreenManager;
+    // BuzzerManager* buzzerManager;
 
     uint32_t currentTime {};
     bool needFullPush {true};
 
     std::function<void()> startOptimization;
     std::function<void()> endOptimization;
+    std::function<void()> alarmTrigger;
 
-    static constexpr uint32_t idleDimTimeout {60 * 1000};
-    static constexpr uint32_t powerSavingTimeout {80 * 1000};
+    static constexpr uint32_t idleDimTimeout {60 * 60 * 1000};
+    static constexpr uint32_t powerSavingTimeout {10 * 1000 + idleDimTimeout};
     PowerState powerState {active};
     uint32_t startPowerStateTime {};
 
@@ -46,6 +49,8 @@ public:
         UiManager::startOptimization = startOptimization;
         UiManager::endOptimization = endOptimization;
     }
+    void setAlarmTriggerCb(std::function<void()> alarmTriggerCb) { alarmTrigger = alarmTriggerCb; }
+    // void setBuzzerManager(BuzzerManager* buzzerMng) { buzzerManager = buzzerMng; }
     TFT_eSPI* getTFT() { return displayManager.getTFT(); }
 
 };

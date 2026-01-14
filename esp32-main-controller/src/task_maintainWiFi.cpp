@@ -61,12 +61,12 @@ void maintainWiFiTask(void *param) {
         if (WiFi.status() != WL_CONNECTED) {
             System::isOnline = false;
             if (now - lastReconnectAttempt >= reconnectInterval) {
-                Serial.print("|  maintainWiFiTask  |> Attempting to reconnect...");
+                Serial.println("|  maintainWiFiTask  |> Attempting to reconnect...");
                 if (attemptConnection()) {
                     System::isOnline = true;
                     Serial.println(" Success!");
                 } else {
-                    Serial.println(" Fail!");
+                    Serial.println(" Fail!");               // TODO: make more clear, increase timer
                 }
                 lastReconnectAttempt = now;
             }

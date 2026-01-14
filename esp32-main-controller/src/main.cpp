@@ -6,7 +6,7 @@
 void maintainWiFiTask(void *param);
 void mainLoopTask(void *param);
 
-AlarmState System::alarmState {armedHome};
+AlarmState System::alarmState {disarmed};
 PowerState System::powerState {active};
 bool System::isOnline {false};
 bool System::doorOpen {false};

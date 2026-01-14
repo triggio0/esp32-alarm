@@ -1,14 +1,29 @@
 #include <Arduino.h>
 #include "Ui_headers/UiManager.h"
 #include "Telegram.h"
-#include "reedSensor.h"
+#include "reedManager.h"
+#include "buzzerManager.h"
 
 constexpr int MAX_FRAMERATE {16};
 
-
 UiManager uiManager;
 TelegramBot tgBot;
-ReedSensor reedSensor;
+ReedManager reedManager;
+BuzzerManager buzzerManager;
+
+
+void alarmTrigger() {
+    if (System::alarmState == armedHome) {
+        System::alarmState = soundAlarm;
+        buzzerManager.beep(1000);
+    } else if (System::alarmState == armedAway) {
+        System::alarmState = lockdown;
+    } else {
+        Serial.println("Error - alarmTrigger() but state was not armed!");
+    }
+}
+
+
 
 void mainLoopTask(void *param) {
     Serial.println("|    mainLoopTask    |> Task created");
@@ -18,8 +33,10 @@ void mainLoopTask(void *param) {
         []() { tgBot.setOff(); },
         []() { tgBot.setOn(); }
     );
-    reedSensor = ReedSensor();
-
+    uiManager.setAlarmTriggerCb(alarmTrigger);
+    reedManager = ReedManager();
+    buzzerManager = BuzzerManager();
+    // uiManager.setBuzzerManager(&buzzerManager);
 
     const TickType_t frameDelay = pdMS_TO_TICKS( static_cast<int>( 1000 / MAX_FRAMERATE ) );
     TickType_t lastWakeTime = xTaskGetTickCount();
@@ -30,7 +47,17 @@ void mainLoopTask(void *param) {
     while (true) {
         uiManager.update();
         tgBot.update();
-        reedSensor.update();        // TODO: check cost (only if armed?)
+        reedManager.update();        // TODO: check cost (only if armed?)
+        if (System::doorOpen && (System::alarmState == armedHome || System::alarmState == armedAway)) {
+            alarmTrigger();
+        }
+        buzzerManager.update();
+
+
+
+
+
+
 
         count++;
         if (count == 500) {

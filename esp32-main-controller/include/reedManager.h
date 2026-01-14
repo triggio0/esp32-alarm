@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 
-class ReedSensor {
+class ReedManager {
 private:
     static constexpr uint16_t debounceDelay {20};
 
@@ -18,7 +18,7 @@ private:
     }
 
 public:
-    ReedSensor() {
+    ReedManager() {
         pinMode(PinLayout::reedDoor, INPUT_PULLUP);
         warmup();
     }
