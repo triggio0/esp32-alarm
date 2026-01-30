@@ -20,7 +20,12 @@ void alarmTrigger() {
         System::alarmState = lockdown;
     } else {
         Serial.println("Error - alarmTrigger() but state was not armed!");
+        return;
     }
+
+    tgBot.sendMessage("⚠️ Alarm triggered! ⚠️");
+    
+    // TODO: continue here
 }
 
 
