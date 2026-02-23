@@ -303,7 +303,6 @@ void MainMenuGraph::begin(DisplayManager* dM, TouchScreenManager* tsM, std::func
 
 void MainMenuGraph::update() {
     updateValues();
-
     TouchPoint touchPoint {tsManager->getTouch()};
     static uint8_t consecInvalid;
     if (!touchPoint.valid) {
@@ -311,7 +310,6 @@ void MainMenuGraph::update() {
     } else {
         consecInvalid = 0;
     }
-
     if (isInSubmenu) {
         armedHomeButton.checkCollision(touchPoint);
         armedAwayButton.checkCollision(touchPoint);
@@ -319,7 +317,6 @@ void MainMenuGraph::update() {
     } else {
         armDisarmButton.checkCollision(touchPoint);
     }
-    
 }
 
 void MainMenuGraph::setAllButtonsFalse() {

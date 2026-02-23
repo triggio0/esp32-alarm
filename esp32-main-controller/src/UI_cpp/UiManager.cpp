@@ -79,7 +79,7 @@ void UiManager::endDisarmSequence() {
 void UiManager::begin() {
     displayManager.begin();
     displayManager.fillColor(TFT_WHITE);
-    touchScreenManager.begin(displayManager.getTFT());
+    touchScreenManager.begin();
 
     TouchButton::setPowerStateTimeResetCb([this]() {
         startPowerStateTime = currentTime;

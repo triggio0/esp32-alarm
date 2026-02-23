@@ -8,7 +8,7 @@ void syncTime() {
     const int maxRetries {20};
     Serial.println("|  maintainWiFiTask  |> Attempting to sync time... ");
     while (!getLocalTime(&timeinfo) && retry < maxRetries) {
-        delay(1000);
+        vTaskDelay(pdMS_TO_TICKS(1000));
         retry++;
     }
 
@@ -25,7 +25,7 @@ bool attemptConnection() {
     WiFi.begin(WiFiSsid, WiFiPassword);
     unsigned long startAttempt {millis()};
     while (WiFi.status() != WL_CONNECTED && millis() - startAttempt < 5*1000) {
-        delay(500);
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
     return (WiFi.status() == WL_CONNECTED);
 }
@@ -75,6 +75,7 @@ void maintainWiFiTask(void *param) {
                 lastSyncAttempt = now;
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
-    delay(1000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 }

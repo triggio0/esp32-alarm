@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <functional>
 #include <TFT_eSPI.h>
+#include <Wire.h>
+#include <Adafruit_FT6206.h>
 
 struct TouchPoint {
     int16_t x;
@@ -36,22 +38,17 @@ private:
     static std::function<void()> powerStateTimeResetCb;
     
 public:
-    
     TouchButton() = default;
     TouchButton(TouchRect bounds, std::function<void(bool hovering)> drawCb, std::function<void()> selectionCb) :
-        boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {}; 
+        boundingBox(bounds), drawCallback(drawCb), selectionCallback(selectionCb) {};
     static void setPowerStateTimeResetCb(std::function<void()> callback) {
         powerStateTimeResetCb = callback;
     }
     bool checkCollision(TouchPoint touchPoint) {
         powerStateTimeResetCb();
-        if (millis() < cooldownEnd) {
-            return false;
-        }
+        if (millis() < cooldownEnd) return false;
         if (boundingBox.containsPoint(touchPoint)) {
-            if (!hovering) {
-                drawCallback(true);
-            }
+            if (!hovering) drawCallback(true);
             hovering = true;
             return true;
         } else {
@@ -74,22 +71,17 @@ public:
 
 class TouchScreenManager {
 private:
-    TFT_eSPI* tft;
+    Adafruit_FT6206 ts;
     bool justReleased {false};
     bool wasTouched {false};
     TouchPoint lastTouch;
 
-    uint16_t calibrationData[5] = {325, 3331, 342, 3540, 2};
-    
-
 private:
     TouchPoint readRawTouch();
 public:
-    void begin(TFT_eSPI* tft_espi);
+    void begin();
     void update();
     TouchPoint getTouch();
     bool isJustReleased() { return justReleased; }
-    void calibrateTouch();
     bool touchDetected();
 };
-    

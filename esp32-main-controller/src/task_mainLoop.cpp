@@ -29,7 +29,6 @@ void alarmTrigger() {
 }
 
 
-
 void mainLoopTask(void *param) {
     Serial.println("|    mainLoopTask    |> Task created");
     uiManager.begin();
@@ -52,7 +51,7 @@ void mainLoopTask(void *param) {
     while (true) {
         uiManager.update();
         tgBot.update();
-        reedManager.update();        // TODO: check cost (only if armed?)
+        reedManager.update();
         if (System::doorOpen && (System::alarmState == armedHome || System::alarmState == armedAway)) {
             alarmTrigger();
         }
@@ -61,16 +60,13 @@ void mainLoopTask(void *param) {
 
 
 
-
-
-
-        count++;
-        if (count == 500) {
-            Serial.printf("- %.0f\n", getFpsCount());
-            count = 0;
-        } else {
-            getFpsCount();
-        }
+        // count++;
+        // if (count == 500) {
+        //     Serial.printf("- %.0f\n", getFpsCount());
+        //     count = 0;
+        // } else {
+        //     getFpsCount();
+        // }
         vTaskDelayUntil(&lastWakeTime, frameDelay);
     }
 }

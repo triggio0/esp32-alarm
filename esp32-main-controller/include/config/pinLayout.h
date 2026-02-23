@@ -19,4 +19,8 @@ namespace PinLayout {
 
     constexpr int16_t tftBacklight {5};
     constexpr int16_t backlightChannel {1};
+
+    constexpr int16_t touchSDA {21};
+    constexpr int16_t touchSCL {22};
+    constexpr int16_t touchRST {22};
 }
