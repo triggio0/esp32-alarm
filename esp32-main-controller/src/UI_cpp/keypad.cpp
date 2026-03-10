@@ -11,6 +11,7 @@ uint16_t KeypadKey::charColor {};
 KeypadKey::KeypadKey(char ch, int16_t posX, int16_t posY) : ch{ch}, posX{posX}, posY{posY} {}
 
 void KeypadKey::push() {
+    Serial.printf("pushed %c \n", ch);                                                                          // TODO remove
     tft->fillRoundRect(posX, posY, width, height, cornerRadius, selected ? bgSelectColor : bgColor);
 
     int16_t textX {static_cast<int16_t>(posX + width / 2 - 8)};   // approx centering for size 2
@@ -29,13 +30,20 @@ void KeypadKey::select(bool s) {
 
 void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
     if (!dM || !tsM) return;
-    startTime = millis();
     displayManager = dM;
     tsManager = tsM;
     tft = displayManager->getTFT();
 
     int16_t keyHeight {static_cast<int16_t>(((height - pinProgressHeight) / 4) - 2 * keySidePaddingY)};
     int16_t keyWidth {static_cast<int16_t>((width / 3) - 2 * keySidePaddingX)};
+
+    KeypadKey::width = keyWidth;
+    KeypadKey::height = keyHeight;
+    KeypadKey::cornerRadius = cornerRadius;
+    KeypadKey::bgColor = keyBgColor;
+    KeypadKey::bgSelectColor = keyBgSelectColor;
+    KeypadKey::charColor = charColor;
+    KeypadKey::tft = tft;
 
     for (int i {}; i < 12; i++) {
         int16_t keyPosX = static_cast<int16_t>(posX + keySidePaddingX + (i % 3) * (keyWidth + 2 * keySidePaddingX));
@@ -100,13 +108,6 @@ void KeypadGraph::begin(DisplayManager* dM, TouchScreenManager* tsM) {
             selectionCb
         );
     }
-    KeypadKey::width = keyWidth;
-    KeypadKey::height = keyHeight;
-    KeypadKey::cornerRadius = cornerRadius;
-    KeypadKey::bgColor = keyBgColor;
-    KeypadKey::bgSelectColor = keyBgSelectColor;
-    KeypadKey::charColor = charColor;
-    KeypadKey::tft = tft;
 }
 
 void KeypadGraph::checkCodeBuffer() {
@@ -131,8 +132,11 @@ void KeypadGraph::checkCodeBuffer() {
 }
 
 void KeypadGraph::pushAll() {
+    Serial.println("pushed all keypad");                        // TODO remove
     tft->fillRect(posX, posY, width, height, bgColor);
-    for (int i {}; allChars[i] != '\0'; i++) {
+    // for (int i {}; allChars[i] != '\0'; i++) {
+    for (int i {}; i < 12; i++) {
+        Serial.println(allChars[i]);                                      // TODO remove
         keyArray[i].push();
     }
     for (int i {}; i < 6; i++) {
@@ -144,6 +148,9 @@ void KeypadGraph::update() {
     if (unlockSequenceState == none) return;
     TouchPoint touchPoint {tsManager->getTouch()};
 
+    // if (unlockSequenceState == inProgress && millis() >= startUnlockSequence + unlockSequenceMaxDuration) {          // TODO
+    //     unlockSequenceState = codeAbort;
+    // }
     static uint8_t consecInvalid;
     if (!touchPoint.valid) {
         if (++consecInvalid > 1) return;
@@ -152,6 +159,13 @@ void KeypadGraph::update() {
     }
     for (int i {}; i < 12; i++) {
         touchButtonArray[i].checkCollision(touchPoint);
+    }
+}
+
+void KeypadGraph::setUnlockSequenceState(UnlockSequenceState state) {
+    unlockSequenceState = state;
+    if (state == inProgress) {
+        startUnlockSequence = millis();
     }
 }
 

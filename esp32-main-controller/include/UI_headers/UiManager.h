@@ -28,13 +28,11 @@ private:
     PowerState powerState {active};
     uint32_t startPowerStateTime {};
 
-    static constexpr uint16_t disarmSequenceDuration {};
     static constexpr uint8_t maxCodeRetries {3};
     bool disarmSequence {false};
-    uint32_t disarmSequenceStart {};
     uint8_t currentCodeRetries {};
 
-    void codeFailed();
+    void codeFailed();              // TODO remove?
     void disarmSequenceUpdate();
     void pushAll();
     void updateActive();
@@ -49,7 +47,7 @@ public:
         UiManager::startOptimization = startOptimization;
         UiManager::endOptimization = endOptimization;
     }
-    void setAlarmTriggerCb(std::function<void()> alarmTriggerCb) { alarmTrigger = alarmTriggerCb; }
+    void setAlarmTriggerCb(std::function<void()> alarmTriggerCb) { alarmTrigger = alarmTriggerCb; }         // TODO
     // void setBuzzerManager(BuzzerManager* buzzerMng) { buzzerManager = buzzerMng; }
     TFT_eSPI* getTFT() { return displayManager.getTFT(); }
 

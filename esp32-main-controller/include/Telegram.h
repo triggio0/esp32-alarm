@@ -11,7 +11,10 @@ private:
     UniversalTelegramBot* bot;
     // const const char* BotToken {BOTtoken};
     // const const char* chat_id {CHAT_ID}; 
-    static constexpr int16_t botRequestDelay {5 * 1000};
+    static constexpr uint16_t baseBotRequestDelay {1000};
+    static constexpr uint16_t slowBotRequestDelay {3000};
+    static constexpr uint16_t slowerBotRequestDelay {20 * 1000};
+    uint16_t counterRequestDelay {};
     uint32_t lastTimeBotRan;
     bool init {false};
     bool active {true};
@@ -44,7 +47,7 @@ private:
                 uint16_t hours   = (totalMinutes % (24 * 60)) / 60;
                 uint16_t minutes = totalMinutes % 60;
 
-                String msg =    "=============== report ===============\n"
+                String msg =    "====== report ======\n"
                                 "Uptime: " + String(days) + "d, " + String(hours) + "h, " + String(minutes) + "m\n"
                                 "Window sensor: \n"
                                 "Camera: \n";
@@ -62,10 +65,10 @@ public:
     }
 
     void begin() {
-        Serial.println("Telegram: Initializing...");
+        Serial.println("Telegram initializing...");
         client.setInsecure();
         bot = new UniversalTelegramBot(BOTtoken, client);
-        bot->sendMessage(CHAT_ID, "esp32 online!", "");
+        bot->sendMessage(CHAT_ID, "esp32 online! /start", "");
         init = true;
     }
 
@@ -78,12 +81,25 @@ public:
         if (!init) {
             begin();
         }
+
+        uint16_t botRequestDelay {};
+        if (counterRequestDelay > 200) {
+            botRequestDelay = slowerBotRequestDelay;
+        } else if (counterRequestDelay > 60) {
+            botRequestDelay = slowBotRequestDelay;
+            counterRequestDelay++;
+        } else {
+            botRequestDelay = baseBotRequestDelay;
+            counterRequestDelay++;
+        }
+
         uint32_t now {millis()};
         if (now < lastTimeBotRan + botRequestDelay) return;
         
         int16_t numNewMessages = bot->getUpdates(bot->last_message_received + 1);
         
         if (numNewMessages > 0) {
+            counterRequestDelay = 0;
             handleIncoming(numNewMessages);
             numNewMessages = bot->getUpdates(bot->last_message_received + 1);
         } else if (numNewMessages < 0) {

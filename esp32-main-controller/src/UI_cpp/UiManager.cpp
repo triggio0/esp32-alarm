@@ -9,11 +9,14 @@
 //     }
 
 void UiManager::disarmSequenceUpdate() {                        // TODO: auto exit (blocks telegram)
-
-    if (disarmSequenceStart + disarmSequenceDuration >= millis()) {
-        alarmTrigger();
-    }
     keypadGraph.update();
+    // if (millis() >= disarmSequenceStart + disarmSequenceDuration) {
+    //     if (System::alarmState == armedHome || System::alarmState == armedAway) {
+    //         endDisarmSequence();
+    //     } else if (System::alarmState == soundAlarm || System::alarmState == lockdown) {
+    //         alarmTrigger();
+    //     }
+    // }
     if (keypadGraph.getUnlockSequenceState() == inProgress) {
         return;
     } else if (keypadGraph.getUnlockSequenceState() == codeSuccess) {
@@ -90,7 +93,6 @@ void UiManager::begin() {
         keypadGraph.setUnlockSequenceState();
         keypadGraph.pushAll();
         startDisarmSequence();
-        disarmSequenceStart = millis();
     });
     
     eyeSprite.begin(&displayManager);

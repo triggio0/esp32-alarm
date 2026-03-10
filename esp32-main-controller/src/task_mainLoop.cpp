@@ -60,13 +60,13 @@ void mainLoopTask(void *param) {
 
 
 
-        // count++;
-        // if (count == 500) {
-        //     Serial.printf("- %.0f\n", getFpsCount());
-        //     count = 0;
-        // } else {
-        //     getFpsCount();
-        // }
+        count++;
+        if (count == 50) {
+            Serial.printf("- %.0f\n", getFpsCount());
+            count = 0;
+        } else {
+            getFpsCount();
+        }
         vTaskDelayUntil(&lastWakeTime, frameDelay);
     }
 }

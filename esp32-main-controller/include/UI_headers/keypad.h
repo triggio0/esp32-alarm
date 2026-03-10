@@ -39,8 +39,6 @@ private:
     TouchScreenManager* tsManager;
     TFT_eSPI* tft;
 
-    uint32_t startTime {};
-
     static constexpr int16_t posX                           {5};
     static constexpr int16_t posY                           {180};
     static constexpr int16_t width                          {310};
@@ -65,6 +63,9 @@ private:
     char pwBuffer[6] {};
     UnlockSequenceState unlockSequenceState {none};
 
+    static constexpr uint16_t unlockSequenceMaxDuration     {60 * 1000};
+    uint32_t startUnlockSequence {};
+
     uint8_t bufferedNumbers;
     uint8_t previousBufferedNumbers {};
 
@@ -77,6 +78,6 @@ public:
     void begin(DisplayManager* displayManager, TouchScreenManager* tsManager);
     void pushAll();
     void update();
-    void setUnlockSequenceState(UnlockSequenceState state=inProgress) { unlockSequenceState = state; }
+    void setUnlockSequenceState(UnlockSequenceState state=inProgress);
     UnlockSequenceState getUnlockSequenceState() { return unlockSequenceState; }
 };
